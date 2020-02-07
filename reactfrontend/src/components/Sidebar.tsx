@@ -1,6 +1,7 @@
 import React from "react";
+import { Styles, MenuItem } from "./Utils";
 
-const Sidebar = ({ menuItems, styles }) => {
+const Sidebar = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Styles}) => {
   const sidebarStyle = {
     height: "100vh",
     width: styles.sidebarWidth,
@@ -31,8 +32,8 @@ const Sidebar = ({ menuItems, styles }) => {
   };
 
   return (
-    <div style={sidebarStyle} key={styles.sidebarWidth}>
-      <div style={logoStyle} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RRS" : "GitHub Repository Researcher"}</div>
+    <div style={sidebarStyle as React.CSSProperties} key={styles.sidebarWidth}>
+      <div style={logoStyle as React.CSSProperties} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RRS" : "GitHub Repository Researcher"}</div>
       {menuItems.map(item => (
         <div style={menuItemStyle} key={styles.sidebarWidth + item.text}>
           <span style={iconStyle} key={styles.sidebarWidth}>{item.icon}</span>

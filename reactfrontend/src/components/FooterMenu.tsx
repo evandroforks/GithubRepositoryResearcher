@@ -1,6 +1,7 @@
 import React from "react";
+import { Styles, MenuItem } from "./Utils";
 
-const FooterMenu = ({ menuItems, styles }) => {
+const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Styles}) => {
   return (
     <div
       style={{

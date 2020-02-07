@@ -1,6 +1,7 @@
 import React from "react";
+import { Styles } from "./Utils";
 
-const TopBar = ({ styles }) => {
+const TopBar = ({ styles }: {styles: Styles}) => {
   const topBarStyle = {
     position: "fixed",
     top: 0,
@@ -17,7 +18,7 @@ const TopBar = ({ styles }) => {
   };
 
   return (
-    <div style={topBarStyle} key={styles.topBarHeight}>
+    <div style={topBarStyle as React.CSSProperties} key={styles.topBarHeight}>
       <span>{`😺️`}</span>
       GitHub Repository Researcher
       <span>{`⚙️`}</span>

@@ -4,7 +4,7 @@ import FooterMenu from "./components/FooterMenu";
 import Content from "./components/Content";
 import Sidebar from "./components/Sidebar";
 
-import { createHashKeyFromMenuItems } from "./components/Utils";
+import { createHashKeyFromMenuItems, Styles, MenuItem } from "./components/Utils";
 
 interface AppProps {
 }
@@ -15,7 +15,7 @@ interface AppState {
 }
 
 class App extends React.Component<AppProps, AppState> {
-  constructor(props: any) {
+  constructor(props: AppProps) {
     super(props);
     this.state = {
       windowWidth: 0,
@@ -42,9 +42,9 @@ class App extends React.Component<AppProps, AppState> {
   render() {
     const { windowWidth } = this.state;
 
-    const styles = {
-      white: (opacity = 1) => `rgba(255, 255, 255, ${opacity})`,
-      black: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    const styles: Styles = {
+      white: (opacity: number = 1) => `rgba(255, 255, 255, ${opacity})`,
+      black: (opacity: number = 1) => `rgba(0, 0, 0, ${opacity})`,
       topBarHeight: 40,
       footerMenuHeight: 50,
       showFooterMenuText: windowWidth > 500,
@@ -53,7 +53,7 @@ class App extends React.Component<AppProps, AppState> {
       sidebarCollapsed: windowWidth < 1100
     };
 
-    const menuItems = styles.showSidebar
+    const menuItems: Array<MenuItem> = styles.showSidebar
       ? [
         { icon: `😀`, text: "Item 1" },
         { icon: `😉`, text: "Item 2" },

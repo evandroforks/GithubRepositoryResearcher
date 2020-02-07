@@ -1,6 +1,7 @@
 import React from "react";
+import { Styles } from "./Utils";
 
-const Content = ({ styles }) => {
+const Content = ({ styles }: {styles: Styles}) => {
   const { showSidebar } = styles;
 
   const dummyPost = {

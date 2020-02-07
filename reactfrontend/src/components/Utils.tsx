@@ -13,4 +13,20 @@ export function createHashKeyFromMenuItems(menuItems: Array< any >) : string {
   return md.digest().toHex();
 }
 
+export interface Styles {
+  white: any,
+  black: any,
+  topBarHeight: number,
+  footerMenuHeight: number,
+  showFooterMenuText: boolean,
+  showSidebar: boolean,
+  sidebarWidth: number,
+  sidebarCollapsed: boolean
+}
+
+export interface MenuItem {
+  icon: string,
+  text: string
+}
+
 export default createHashKeyFromMenuItems;

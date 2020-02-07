@@ -1,0 +1,13 @@
+console_backend.log
+console_frontend.log
+
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+env.sh
+env.bat
+
+*.sublime-workspace
+*.pyc

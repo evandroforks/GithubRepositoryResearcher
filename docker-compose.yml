@@ -1,0 +1,40 @@
+version: '3.0'
+services:
+  reactfrontend:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile-frontend
+    ports:
+      - ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000}:${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000}
+    expose:
+      - ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000} # redundant when using also using ports!
+    environment:
+      - REACT_APP_GITHUB_RESEARCHER_BACKEND_IP=pythonbackend
+      - REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
+      - REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT=${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000}
+
+  pythonbackend:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile-backend
+    ports:
+      - ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}:${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
+    expose:
+      - ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000} # redundant when using also using ports!
+    environment:
+      - GITHUB_RESEARCHER_PIP_PATH
+      - GITHUB_RESEARCHER_PYTHON_PATH
+      - GITHUB_RESEARCHER_DEBUG_LEVEL
+      - REACT_APP_GITHUB_RESEARCHER_TOKEN
+      - REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
+
+  tests:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile-tests
+    environment:
+      - REACT_APP_GITHUB_RESEARCHER_BACKEND_IP=pythonbackend
+      - REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
+      - GITHUB_RESEARCHER_PIP_PATH
+      - GITHUB_RESEARCHER_PYTHON_PATH
+      - GITHUB_RESEARCHER_DEBUG_LEVEL

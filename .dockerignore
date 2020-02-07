@@ -1,0 +1,5 @@
+# https://stackoverflow.com/questions/46375287/how-to-make-docker-compose-builds-faster
+**/node_modules
+*.sublime-workspace
+*env.sh
+*env.bat

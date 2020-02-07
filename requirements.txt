@@ -1,0 +1,8 @@
+setuptools
+wheel
+debug_tools
+flask
+flask-jsonpify
+flask-restful
+flask-cors
+requests

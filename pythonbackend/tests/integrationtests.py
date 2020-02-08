@@ -31,6 +31,7 @@ def main():
 
 
 class PythonBackendIntegrationTests(TimeSpentTestCase):
+    # https://realpython.com/python-requests/
     server_url = r'http://{}:{}'.format(
         os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_BACKEND_IP' ),
         os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT' ),
@@ -43,20 +44,70 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         return decoded_response
 
     def test_invalid_path_request(self):
-        # https://realpython.com/python-requests/
         response = requests.post(
             "%s/add_path" % self.server_url,
             data=json.dumps( {} ),
             headers={ 'Content-Type': 'application/json' },
-            timeout=1,
+            timeout=3,
         )
 
         decoded_response = self.decoded_response( response.content )
         log( 4, 'response\n%s', decoded_response )
 
-        self.assertEqual( 404, response.status_code )
-        self.assertRegex( response.headers.get( "Content-Type" ), r'text/html' )
         self.assertRegex( decoded_response, r"The requested URL was not found on the server" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/html' )
+        self.assertEqual( 404, response.status_code )
+
+    def test_empty_server_search_request(self):
+        response = requests.post(
+            "%s/search_github" % self.server_url,
+            data=json.dumps( {} ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=3,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( decoded_response, r"Missing 'search_query'" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
+    def test_invalid_server_search_request(self):
+        response = requests.post(
+            "%s/search_github" % self.server_url,
+            data=json.dumps( {
+                "search_query": 10
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=3,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( decoded_response, r"'search_query' must be a string" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
+    def test_valid_server_search_request(self):
+        response = requests.post(
+            "%s/search_github" % self.server_url,
+            data=json.dumps( {
+                "search_query": "language:javascript sort:stars"
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        json_response = json.loads( response.content )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'application/json' )
+        self.assertEqual( 200, response.status_code )
+        self.assertGreater( json_response["repositoryCount"], 10 )
+        self.assertGreater( len( json_response["repositories"] ), 2 )
 
 
 def load_tests(loader, standard_tests, pattern):

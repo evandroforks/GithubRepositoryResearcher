@@ -23,6 +23,57 @@ This work was mostly based on the tutorials:
 1. https://github.com/ryanjyost/react-responsive-tutorial ([blog post](https://codeburst.io/how-to-build-fully-responsive-react-apps-with-nothing-but-inline-styles-and-javascript-242c091b6ba1))
 
 
+## RestAPI
+
+For frontend application consume data from the implemented backend by using a Restful API.
+The available endpoints are:
+1. **`search_github`**:
+   This is a **`POST`** endpoint which accepts **`JSON`** on the format:
+    ```json
+    {
+        "search_query": "term to search on github",
+        "search_page": 0,
+        "items_per_page": 0
+    }
+    ```
+    1. **`search_page`** is the number of the to retrieve/return as result.
+       If requested page does not exist,
+       an empty result will be returned.
+    1. **`items_per_page`** is the maximum items count to return by a request.
+
+   The result of this request is another **`JSON`**,
+   within a list of repositories matching the **`search_query`** up to **`items_per_page`** results for the given **`search_page`**.
+   The resulting **`JSON`** has the following format:
+   ```json
+   {
+     "repositoryCount": 9280591,
+     "repositories": [
+       {
+         "nameWithOwner": "twbs/bootstrap",
+         "description": "The most popular HTML, CSS, and JavaScript framework...",
+         "stargazers": {
+           "totalCount": 138509
+         }
+       }
+     ]
+   }
+   ```
+   1. **`repositoryCount`** is the total number of repositories found on the search.
+   1. **`repositories`** are all repositories found for the requested **`search_page`** up to the given the **`items_per_page`** on the initial
+      **`POST`** request.
+
+1. **`detail_repository`**:
+   This is a **`POST`** endpoint which accepts **`JSON`** on the format:
+    ```json
+    {
+        "repository_user": "the name of the user owner of the repository",
+        "repository_name": "the name of the repository to get detailed information"
+    }
+    ```
+    The result of this request is another **`JSON`**,
+    within all the pertinent details about the given **`repository_name`** from the requested **`repository_user`**.
+
+
 ## Deployment (Docker)
 
 For easy deployment,

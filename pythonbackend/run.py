@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 
 import os
+import json
 import requests
 
 import flask
@@ -15,6 +16,24 @@ log = getLogger( os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL' ), 'r
 # https://gist.github.com/gbaman/b3137e18c739e0cf98539bf4ec4366ad
 graphql_url = "https://api.github.com/graphql"
 headers = { "Authorization": f"Bearer {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )}" }
+
+# https://github.community/t5/GitHub-API-Development-and/graphql-search-query-format/td-p/19238
+search_github_graphqlquery = wrap_text( """
+    query topRepos($query: String!) {
+      search(first: 3, query: $query, type: REPOSITORY) {
+        repositoryCount
+        nodes {
+          ... on Repository {
+            nameWithOwner
+            description
+            stargazers {
+              totalCount
+            }
+          }
+        }
+      }
+    }
+""" )
 
 # https://stackoverflow.com/questions/15117416/capture-arbitrary-path-in-flask-route
 # https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
@@ -61,21 +80,54 @@ def main():
     )
 
 
-def run_graphql_query(graphqlquery): # A simple function to use requests.post to make the API call. Note the json= section.
-    request = requests.post( graphql_url, json={'query': graphqlquery}, headers=headers )
+@APP.route('/search_github', endpoint='search_github', methods=['POST'])
+def search_github():
+    results = {}
+
+    try:
+        search_data = flask.request.json
+        log( 4, f"search_data {search_data}" )
+
+        if "search_query" not in search_data:
+            return flask.Response( "Error: Missing 'search_query' on post query!", status=400, mimetype='text/plain' )
+
+        if not isinstance( search_data["search_query"], str ):
+            return flask.Response( "Error: 'search_query' must be a string!", status=400, mimetype='text/plain' )
+
+        queryvariables = {
+            "query": search_data["search_query"]
+        }
+
+        graphqlresults = run_graphql_query( search_github_graphqlquery, queryvariables )
+        results["repositoryCount"] = graphqlresults["data"]["search"]["repositoryCount"]
+        results["repositories"] = graphqlresults["data"]["search"]["nodes"]
+
+    except Exception as error:
+        return flask.Response( str(error), status=500, mimetype='text/plain' )
+
+    dumped_json = json.dumps( results )
+    return flask.Response( dumped_json, status=200, mimetype='application/json' )
+
+
+# A simple function to use requests.post to make the API call. Note the json= section.
+# https://developer.github.com/v4/explorer/
+def run_graphql_query(graphqlquery, queryvariables={}):
+    request = requests.post( graphql_url, json={'query': graphqlquery, 'variables': queryvariables}, headers=headers )
 
     if request.status_code == 200:
         result = request.json()
 
         if "data" not in result:
-            raise Exception( f"There is no data in the result! '{result}'" )
+            raise Exception( f"There is no data in the result!\n'{json.dumps( result, indent=2, sort_keys=True )}'" )
 
     else:
         raise Exception( wrap_text(
             f"""Query failed to run by returning code of {request.status_code}.
+            queryvariables:
+            {queryvariables}
             graphqlquery:
             {graphqlquery}
-        """, trim_spaces=" " ) )
+        """ ) )
 
     return result
 

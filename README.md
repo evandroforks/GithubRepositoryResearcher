@@ -2,13 +2,17 @@
 
 Search and
 list repositories throughout Github.
-Given a repository name,
-returns a repositories list within the name of the repository, its description,
-the name of the author and
+Given a Github repository query string,
+returns a list of repositories matching the query string,
+within their name, description, author's name and
 the number of stars.
+You can see how to formulate repository query strings at [Searching for
+repositories](https://help.github.com/en/github/searching-for-information-on-github/searching-for-repositories).
+For example,
+the query **`language:javascript sort:stars`** retries the most stared repositories on Github.
 
 When clicking on one of the results,
-the system presents more detailed results about the repository,
+the system presents more detailed information about the repository,
 as the number of open issues,
 the main language of the project,
 its date of creation and
@@ -62,7 +66,7 @@ frontend servers.
     1. **`docker-compose build reactfrontend pythonbackend`**
     1. **`docker-compose up --force-recreate --build reactfrontend pythonbackend`**
     1. **`docker build . -f Dockerfile-nodejs -t evandrocoan/ubuntu18nodejspython`**
-1. **`docker-compose ps`**
+1. **`docker-compose ps`** (to list running containers)
 1. **`docker-compose --verbose up`**
 1. **`docker-compose run --entrypoint /bin/bash <container>`**
     1. It is the same as **`docker run -it <container> /bin/bash`**
@@ -70,7 +74,7 @@ frontend servers.
 1. Working with images:
     1. **`docker image ls`** (to list containers images)
     1. **`docker ps -n10 -s`** (to list exited containers)
-    1. **`docker containers ls`** (running containers)
+    1. **`docker containers ls`** (to list running containers)
 1. Open an image and run a iterative shell:
     1. **`docker imagens`** (to list available images/containers)
     1. **`docker run -it githubrepositoryresearcher_tests /bin/bash`**
@@ -115,7 +119,7 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
 1. **`cd GithubRepositoryResearcher`**
 1. **`python3 -m pip install -r requirements.txt`**
 1. Create the environment variables file **`env.sh`** as the following or
-   just export these variables before running the project.
+   just export these variables before running the project:
     ```shell
     #!/bin/bash
     : ${GITHUB_RESEARCHER_PIP_PATH:="pip3"}; export GITHUB_RESEARCHER_PIP_PATH
@@ -129,9 +133,14 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
     : ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:="3000"}; export REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT
     ```
     1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
-    1. You only need to export the variables which their presented default is requires change.
+       See [Creating a personal access token for the command
+       line](https://help.github.com/en/github/authenticating-to-github/creating-a-personal-access-token-for-the-command-line).
+       Your token does not have to have any special permissions to work with this tool.
+    1. You only need to export the variables which their presented default requires changing.
 1. Open a command line and run **`bash run_backend.sh`**
-1. Now, open another command line and run the commands:
+1. Now,
+   open another command line on the same directory and
+   run the commands:
     1. **`cd reactfrontend`**
     1. **`npm install`**
     1. **`cd ..`**
@@ -143,5 +152,5 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
    put the backend and
    frontend servers up and
    running.
-1. **`bash run_tests.sh`**
+1. **`bash run_tests.sh`** (to run all tests)
     1. Run **`bash run_tests.sh -h`** to learn more about command line options available.

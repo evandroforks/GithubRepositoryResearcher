@@ -4,23 +4,43 @@ import FooterMenu from "./components/FooterMenu";
 import Content from "./components/Content";
 import Sidebar from "./components/Sidebar";
 
-import { createHashKeyFromMenuItems, Styles, MenuItem } from "./components/Utils";
+import { Styles, MenuItem, RepositoryResults } from "./components/Utils";
+import { createHashKeyFromMenuItems, getEnvironmentVariable, prettyPrintError } from "./components/Utils";
 
 interface AppProps {
 }
 
 interface AppState {
+  errorMessage: string
   windowWidth: number,
-  windowHeight: number
+  windowHeight: number,
+  repositoryResults: RepositoryResults
 }
 
 class App extends React.Component<AppProps, AppState> {
+  private backEndPort: string;
+  private backEndIp: string;
+
   constructor(props: AppProps) {
     super(props);
+    this.setError = this.setError.bind(this)
+    this.getBackEndUrl = this.getBackEndUrl.bind(this)
+    this.sendSearchQuery = this.sendSearchQuery.bind(this)
+    this.updateDimensions = this.updateDimensions.bind(this)
+
+    this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
+    this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
+
     this.state = {
       windowWidth: 0,
-      windowHeight: 0
+      windowHeight: 0,
+      errorMessage: "",
+      repositoryResults: {repositoryCount: 0, repositories: []}
     };
+  }
+
+  getBackEndUrl() {
+    return `http://${this.backEndIp}:${this.backEndPort}`;
   }
 
   componentDidMount() {
@@ -87,13 +107,74 @@ class App extends React.Component<AppProps, AppState> {
             <TopBar styles={styles} key={"topbar" + windowWidth} />
           )}
 
-        <Content styles={styles} key={"contents" + windowWidth} />
+        <Content styles={styles}
+          errorMessage={this.state.errorMessage}
+          sendSearchQuery={this.sendSearchQuery}
+          repositoryResults={this.state.repositoryResults}
+          key={"contents" + windowWidth} />
 
         {!styles.showSidebar && (
           <FooterMenu menuItems={menuItems} styles={styles} key={menuItemsKey} />
         )}
       </div>
     );
+  }
+
+  sendSearchQuery(search_query: string) {
+    console.log("Sending search_query", search_query)
+
+    // https://stackoverflow.com/questions/39565706/post-request-with-fetch-api
+    fetch(
+      this.getBackEndUrl() + "/search_github",
+      {
+        method: 'POST',
+        body: JSON.stringify(
+          {
+            search_query: search_query,
+          }
+        ),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+      }).then(
+        response => {
+          console.log('Server response', response);
+
+          // https://stackoverflow.com/questions/51568437/return-body-text-from-fetch-api
+          if (response.ok) {
+            var repositories_response = response.json()
+            console.log( 'Server response OK:', repositories_response );
+
+            repositories_response.then(
+              (response: RepositoryResults) => {
+                console.log( 'Server response:', response );
+
+                this.setState({
+                  repositoryResults: response,
+                });
+            }).catch(this.setError)
+          }
+          else {
+            // https://stackoverflow.com/questions/55833486/use-fetch-read-response-body-from-non-http-ok
+            response.text().then(
+              text => {
+                throw new Error('Could not get the server response after sending the request!\n'
+                  + response.statusText
+                  + '\n'
+                  + text);
+            }).catch(this.setError)
+          }
+    }).catch(this.setError)
+  }
+
+  setError(error: Error) {
+    let message: string = prettyPrintError(error);
+    alert(message);
+
+    message = message.split(" ").join("&nbsp;");
+    message = message.split("\n").join("<br/>");
+    this.setState({ errorMessage: message })
   }
 }
 

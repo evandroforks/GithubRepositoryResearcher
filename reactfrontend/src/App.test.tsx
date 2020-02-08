@@ -9,6 +9,12 @@ test('renders GitHub Repository Researcher site name', () => {
   expect(linkElement).toBeInTheDocument();
 });
 
+test('renders the site name search button', () => {
+  const { getByText } = render(<App />);
+  const linkElement = getByText(/Start Searching/i);
+  expect(linkElement).toBeInTheDocument();
+});
+
 it('renders without crashing', () => {
   const div = document.createElement('div');
   ReactDOM.render(<App />, div);

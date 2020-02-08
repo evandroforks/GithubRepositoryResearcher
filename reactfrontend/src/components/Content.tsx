@@ -1,16 +1,11 @@
 import React from "react";
-import { Styles } from "./Utils";
+import { Styles, RepositoryResults, Repository } from "./Utils";
+import InputFieldComponent from "./InputFieldComponent";
 
-const Content = ({ styles }: {styles: Styles}) => {
+const Content = ({ styles, errorMessage, sendSearchQuery, repositoryResults }:
+  { styles: Styles, errorMessage: string, sendSearchQuery: Function, repositoryResults: RepositoryResults}) =>
+{
   const { showSidebar } = styles;
-
-  const dummyPost = {
-    title: `Here's a blog post title`,
-    summary:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-  };
-
-  const posts = Array(20).fill(dummyPost);
 
   const contentStyle = {
     paddingTop: showSidebar ? 20 : styles.topBarHeight + 20,
@@ -21,11 +16,21 @@ const Content = ({ styles }: {styles: Styles}) => {
 
   return (
     <div style={contentStyle}>
-      {posts.map((post, i) => {
+      {errorMessage.length > 0 &&
+        <div dangerouslySetInnerHTML={{ __html: errorMessage }} />
+      }
+
+      <InputFieldComponent sendSearchQuery={sendSearchQuery} />
+
+      {(repositoryResults.repositoryCount > 0 &&
+        <p>Total repositories found: {repositoryResults.repositoryCount}</p>) || <p>No repositories available to display.</p>
+      }
+
+      {repositoryResults.repositories.map((repository: Repository, i) => {
         return (
           <div key={i} style={{ marginBottom: 40 }}>
-            <h2 style={{ marginBottom: 0 }}>{post.title}</h2>
-            <p>{post.summary}</p>
+            <h2 style={{ marginBottom: 0 }}>{i + 1}. {repository.nameWithOwner} ({repository.stargazers.totalCount.toLocaleString()} stars)</h2>
+            <p>{repository.description}</p>
           </div>
         );
       })}

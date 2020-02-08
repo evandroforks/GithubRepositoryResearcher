@@ -4,6 +4,8 @@ import FooterMenu from "./components/FooterMenu";
 import Content from "./components/Content";
 import Sidebar from "./components/Sidebar";
 
+import { createHashKeyFromMenuItems } from "./components/Utils";
+
 interface AppProps {
 }
 
@@ -68,6 +70,7 @@ class App extends React.Component<AppProps, AppState> {
         { icon: `🤔`, text: "Item 4" },
         { icon: `😛`, text: "Item 5" }
       ];
+    const menuItemsKey: string = createHashKeyFromMenuItems(menuItems)
 
     return (
       <div
@@ -76,17 +79,18 @@ class App extends React.Component<AppProps, AppState> {
           minHeight: "100vh",
           position: "relative"
         }}
+        key={windowWidth}
       >
         {styles.showSidebar ? (
-          <Sidebar menuItems={menuItems} styles={styles} />
+          <Sidebar menuItems={menuItems} styles={styles} key={menuItemsKey} />
         ) : (
-            <TopBar styles={styles} />
+            <TopBar styles={styles} key={"topbar" + windowWidth} />
           )}
 
-        <Content styles={styles} />
+        <Content styles={styles} key={"contents" + windowWidth} />
 
         {!styles.showSidebar && (
-          <FooterMenu menuItems={menuItems} styles={styles} />
+          <FooterMenu menuItems={menuItems} styles={styles} key={menuItemsKey} />
         )}
       </div>
     );

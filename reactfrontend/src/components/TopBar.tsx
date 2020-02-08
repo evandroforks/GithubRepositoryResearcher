@@ -17,7 +17,7 @@ const TopBar = ({ styles }) => {
   };
 
   return (
-    <div style={topBarStyle}>
+    <div style={topBarStyle} key={styles.topBarHeight}>
       <span>{`😺️`}</span>
       GitHub Repository Researcher
       <span>{`⚙️`}</span>

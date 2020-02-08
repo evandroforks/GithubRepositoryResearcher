@@ -144,9 +144,4 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
    frontend servers up and
    running.
 1. **`bash run_tests.sh`**
-1. Alternatively,
-   you can run only the frontend or
-   backend tests with:
-    1. **`bash run_tests.sh -h`** or **`bash run_tests.sh --help`**
-    1. **`bash run_tests.sh -r`** or **`bash run_tests.sh --react`**
-    1. **`bash run_tests.sh -p`** or **`bash run_tests.sh --python`**
+    1. Run **`bash run_tests.sh -h`** to learn more about command line options available.

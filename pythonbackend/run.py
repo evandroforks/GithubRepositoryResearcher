@@ -1,4 +1,5 @@
-# An example to get the remaining rate limit using the Github GraphQL API.
+#!/usr/bin/env python3
+# -*- coding: UTF-8 -*-
 
 import os
 import requests

@@ -34,10 +34,24 @@ function reactfrontend_tests() {
 
 function pythonbackend_tests() {
     printf "Running pythonbackend tests...\\n";
+    testscase="${1}";
 
-    "${GITHUB_RESEARCHER_PYTHON_PATH}" \
-        "${SCRIPT_FOLDER_PATH}/pythonbackend/tests/run_all.py" || exit $?
+    # https://stackoverflow.com/questions/15971735/running-single-test-from-unittest-testcase-via-command-line
+    if [[ -z ${testscase} ]];
+    then
+        "${GITHUB_RESEARCHER_PYTHON_PATH}" "${SCRIPT_FOLDER_PATH}/pythonbackend/tests/run_all.py" || exit $?
+
+    else
+        printf "Running pythonbackend single test(s) '%s'...\\n" "${testscase}";
+        cd "${SCRIPT_FOLDER_PATH}/pythonbackend"
+
+        "${GITHUB_RESEARCHER_PYTHON_PATH}" -m unittest "tests.${testscase}" || exit $?
+        printf "\\n";
+        return 0
+    fi
+
     printf "\\n";
+    return 1
 }
 
 # https://github.com/evandrocoan/dotfiles/blob/e7f94508f0d321a66aa8b84b1939432da27fc1cf/.local/bin/_generic_installer.sh#L99
@@ -56,13 +70,17 @@ function parse_command_line() {
             case ${1} in
 
                 -h|--help)
-                    printf "%s [options]\\n" "${0}";
+                    printf "%s [options] [arguments]\\n" "${0}";
                     printf "\\n";
-                    printf "This is a small shellscrip utility to run this project unit tests.\\n" "${0}";
+                    printf "This is a small shellscrip utility to run this project unit tests.\\n";
                     printf "\\n";
                     printf "Arguments:\\n";
-                    printf "    -p or -python to run the python backend tests.\\n" "${0}";
-                    printf "    -r or -react to run the react tests.\\n" "${0}";
+                    printf "    -p or --python to run the python backend tests.\\n";
+                    printf "           You can also pass a test 'module' to run individual module.\\n";
+                    printf "           Alternatively 'module.class.testname' to run individual test.\\n";
+                    printf "           For example 'bash %s -p module.class.testname' .\\n" "${0}";
+                    printf "    -r or --react to run the react tests.\\n";
+                    printf "    -h or --help to show this message.\\n";
                     shift;
                     ;;
 
@@ -72,7 +90,10 @@ function parse_command_line() {
                     ;;
 
                 -p|--python)
-                    pythonbackend_tests;
+                    if ! pythonbackend_tests "${2}";
+                    then
+                        shift; # consume the second argument after -p
+                    fi
                     shift;
                     ;;
 

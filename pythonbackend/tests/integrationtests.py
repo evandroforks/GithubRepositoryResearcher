@@ -11,7 +11,8 @@ def assert_path(*args):
         sys.path.append( module )
 
 this_direcotory = os.path.dirname( os.path.realpath( __file__ ) )
-assert_path( os.path.dirname( this_direcotory ), 'pythonbackend' )
+assert_path( os.path.dirname( this_direcotory ) )
+assert_path( os.path.dirname( this_direcotory ), "tests" )
 
 import json
 import unittest

@@ -43,12 +43,12 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         decoded_response = decoded_response.replace('\r\n', '\n').rstrip(' \n\r')
         return decoded_response
 
-    def test_invalid_path_request(self):
+    def test_invalid_server_path_request(self):
         response = requests.post(
             "%s/add_path" % self.server_url,
             data=json.dumps( {} ),
             headers={ 'Content-Type': 'application/json' },
-            timeout=3,
+            timeout=10,
         )
 
         decoded_response = self.decoded_response( response.content )
@@ -58,43 +58,26 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertRegex( response.headers.get( "Content-Type" ), r'text/html' )
         self.assertEqual( 404, response.status_code )
 
-    def test_empty_server_search_request(self):
+    def test_empty_server_search_github_request(self):
         response = requests.post(
             "%s/search_github" % self.server_url,
             data=json.dumps( {} ),
             headers={ 'Content-Type': 'application/json' },
-            timeout=3,
+            timeout=10,
         )
 
         decoded_response = self.decoded_response( response.content )
         log( 4, 'response\n%s', decoded_response )
 
-        self.assertRegex( decoded_response, r"Missing 'search_query'" )
+        self.assertRegex( decoded_response, r"Missing 'searchQuery' on your post query" )
         self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
         self.assertEqual( 400, response.status_code )
 
-    def test_invalid_server_search_request(self):
+    def test_invalid_server_search_github_request(self):
         response = requests.post(
             "%s/search_github" % self.server_url,
             data=json.dumps( {
-                "search_query": 10
-            } ),
-            headers={ 'Content-Type': 'application/json' },
-            timeout=3,
-        )
-
-        decoded_response = self.decoded_response( response.content )
-        log( 4, 'response\n%s', decoded_response )
-
-        self.assertRegex( decoded_response, r"'search_query' must be a string" )
-        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
-        self.assertEqual( 400, response.status_code )
-
-    def test_valid_server_search_request(self):
-        response = requests.post(
-            "%s/search_github" % self.server_url,
-            data=json.dumps( {
-                "search_query": "language:javascript sort:stars"
+                "searchQuery": 10
             } ),
             headers={ 'Content-Type': 'application/json' },
             timeout=10,
@@ -103,11 +86,107 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         decoded_response = self.decoded_response( response.content )
         log( 4, 'response\n%s', decoded_response )
 
-        json_response = json.loads( response.content )
+        self.assertRegex( decoded_response, r"'searchQuery=10' must be of type <class 'str'>" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
+    def test_valid_server_search_github_request(self):
+        response = requests.post(
+            "%s/search_github" % self.server_url,
+            data=json.dumps( {
+                "searchQuery": "language:javascript sort:stars"
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
         self.assertRegex( response.headers.get( "Content-Type" ), r'application/json' )
         self.assertEqual( 200, response.status_code )
+
+        json_response = json.loads( response.content )
         self.assertGreater( json_response["repositoryCount"], 10 )
         self.assertGreater( len( json_response["repositories"] ), 2 )
+
+        self.assertIn( "hasMorePages", json_response )
+        self.assertGreater( len( json_response["lastItemId"] ), 2 )
+
+    def test_empty_server_list_repositories_request(self):
+        response = requests.post(
+            "%s/list_repositories" % self.server_url,
+            data=json.dumps( {} ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( decoded_response, r"Missing 'repositoryUser' on your post query" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
+    def test_valid_server_list_repositories_request(self):
+        response = requests.post(
+            "%s/list_repositories" % self.server_url,
+            data=json.dumps( {
+                "repositoryUser": "evandrocoan"
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( response.headers.get( "Content-Type" ), r'application/json' )
+        self.assertEqual( 200, response.status_code )
+
+        json_response = json.loads( response.content )
+        self.assertEqual( len( json_response ), 3 )
+        self.assertGreater( len( json_response["repositories"] ), 2 )
+
+        self.assertIn( "hasMorePages", json_response )
+        self.assertGreater( len( json_response["lastItemId"] ), 2 )
+
+    def test_empty_server_detail_repositories_request(self):
+        response = requests.post(
+            "%s/detail_repository" % self.server_url,
+            data=json.dumps( {} ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( decoded_response, r"Missing 'repositoryUser' on your post query" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
+    def test_valid_server_detail_repositories_request(self):
+        response = requests.post(
+            "%s/detail_repository" % self.server_url,
+            data=json.dumps( {
+                "repositoryUser": "evandrocoan",
+                "repositoryName": "ITE"
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( response.headers.get( "Content-Type" ), r'application/json' )
+        self.assertEqual( 200, response.status_code )
+
+        json_response = json.loads( response.content )
+        self.assertEqual( len( json_response ), 1 )
+        self.assertGreater( len( json_response["repository_data"] ), 2 )
+        self.assertIn( "totalCount", json_response["repository_data"]["issues"] )
 
 
 def load_tests(loader, standard_tests, pattern):

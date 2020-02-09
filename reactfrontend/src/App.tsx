@@ -120,8 +120,8 @@ class App extends React.Component<AppProps, AppState> {
     );
   }
 
-  sendSearchQuery(search_query: string) {
-    console.log("Sending search_query", search_query)
+  sendSearchQuery(searchQuery: string) {
+    console.log("Sending searchQuery", searchQuery)
 
     // https://stackoverflow.com/questions/39565706/post-request-with-fetch-api
     fetch(
@@ -130,7 +130,7 @@ class App extends React.Component<AppProps, AppState> {
         method: 'POST',
         body: JSON.stringify(
           {
-            search_query: search_query,
+            searchQuery: searchQuery,
           }
         ),
         headers: {

@@ -5,6 +5,10 @@ import os
 import json
 import requests
 
+import sys
+import traceback
+import functools
+
 import flask
 import flask_cors
 
@@ -16,24 +20,6 @@ log = getLogger( os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL' ), 'r
 # https://gist.github.com/gbaman/b3137e18c739e0cf98539bf4ec4366ad
 graphql_url = "https://api.github.com/graphql"
 headers = { "Authorization": f"Bearer {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )}" }
-
-# https://github.community/t5/GitHub-API-Development-and/graphql-search-query-format/td-p/19238
-search_github_graphqlquery = wrap_text( """
-    query topRepos($query: String!) {
-      search(first: 3, query: $query, type: REPOSITORY) {
-        repositoryCount
-        nodes {
-          ... on Repository {
-            nameWithOwner
-            description
-            stargazers {
-              totalCount
-            }
-          }
-        }
-      }
-    }
-""" )
 
 # https://stackoverflow.com/questions/15117416/capture-arbitrary-path-in-flask-route
 # https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
@@ -80,6 +66,47 @@ def main():
     )
 
 
+def getstacktrace():
+    return "".join( traceback.format_exception( *sys.exc_info() ) )
+
+
+def catch_remote_exceptions(wrapped_function):
+    """ https://stackoverflow.com/questions/6126007/python-getting-a-traceback-from-a-multiprocessing-process """
+
+    @functools.wraps(wrapped_function)
+    def new_function(*args, **kwargs):
+        try:
+            return wrapped_function(*args, **kwargs)
+
+        except:
+            raise Exception( getstacktrace() )
+
+    return new_function
+
+
+class InvalidRequest(Exception):
+    def __init__(self, flaskResponse):
+        self.flaskResponse = flaskResponse
+
+
+def validate_request_data(keyword, dictionary, datatype):
+    if keyword not in dictionary:
+        raise InvalidRequest( flask.Response(
+            f"Error: Missing '{keyword}' on your post query!", status=400, mimetype='text/plain' ) )
+
+    validate_request_dictionary(keyword, dictionary, datatype)
+
+
+def validate_request_dictionary(keyword, dictionary, datatype):
+    if keyword in dictionary:
+        container = dictionary[keyword]
+
+        if not isinstance( container, datatype ):
+            raise InvalidRequest( flask.Response(
+                f"Error: '{keyword}={container}' must be of type {datatype}!", status=400, mimetype='text/plain' ) )
+
+
+@catch_remote_exceptions
 @APP.route('/search_github', endpoint='search_github', methods=['POST'])
 def search_github():
     results = {}
@@ -88,22 +115,147 @@ def search_github():
         search_data = flask.request.json
         log( 4, f"search_data {search_data}" )
 
-        if "search_query" not in search_data:
-            return flask.Response( "Error: Missing 'search_query' on post query!", status=400, mimetype='text/plain' )
-
-        if not isinstance( search_data["search_query"], str ):
-            return flask.Response( "Error: 'search_query' must be a string!", status=400, mimetype='text/plain' )
+        validate_request_data( "searchQuery", search_data, str )
+        validate_request_dictionary( "lastItemId", search_data, int )
+        validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
-            "query": search_data["search_query"]
+            "query": search_data["searchQuery"],
+            "items": search_data.get( "itemsPerPage", 3 ),
+            "lastItem": search_data.get( "lastItemId", None ),
         }
 
+        # https://github.community/t5/GitHub-API-Development-and/graphql-search-query-format/td-p/19238
+        search_github_graphqlquery = wrap_text( """
+            query SearchRepositories($query: String!, $items: Int!, $lastItem: String) {
+              search(first: $items, query: $query, type: REPOSITORY, after: $lastItem) {
+                pageInfo {
+                  hasNextPage
+                  endCursor
+                }
+                repositoryCount
+                nodes {
+                  ... on Repository {
+                    nameWithOwner
+                    description
+                    stargazers {
+                      totalCount
+                    }
+                  }
+                }
+              }
+            }
+        """ )
         graphqlresults = run_graphql_query( search_github_graphqlquery, queryvariables )
+
         results["repositoryCount"] = graphqlresults["data"]["search"]["repositoryCount"]
         results["repositories"] = graphqlresults["data"]["search"]["nodes"]
+        results["lastItemId"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
+        results["hasMorePages"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
 
-    except Exception as error:
-        return flask.Response( str(error), status=500, mimetype='text/plain' )
+    except InvalidRequest as error:
+        return error.flaskResponse
+
+    except Exception:
+        return flask.Response( getstacktrace(), status=500, mimetype='text/plain' )
+
+    dumped_json = json.dumps( results )
+    return flask.Response( dumped_json, status=200, mimetype='application/json' )
+
+
+@catch_remote_exceptions
+@APP.route('/list_repositories', endpoint='list_repositories', methods=['POST'])
+def list_repositories():
+    results = {}
+
+    try:
+        search_data = flask.request.json
+        log( 4, f"search_data {search_data}" )
+
+        validate_request_data( "repositoryUser", search_data, str )
+        validate_request_dictionary( "lastItemId", search_data, str )
+        validate_request_dictionary( "itemsPerPage", search_data, int )
+
+        queryvariables = {
+            "user": search_data["repositoryUser"],
+            "lastItem": search_data.get( "lastItemId", None ),
+            "items": search_data.get( "itemsPerPage", 3 ),
+        }
+
+        # https://stackoverflow.com/questions/39551325/github-graphql-orderby
+        # https://stackoverflow.com/questions/48116781/github-api-v4-how-can-i-traverse-with-pagination-graphql
+        list_repositories_graphqlquery = wrap_text( """
+            query ListRepositories($user: String!, $items: Int!, $lastItem: String) {
+              repositoryOwner(login: $user) {
+                repositories(first: $items, after: $lastItem, orderBy: {field: STARGAZERS, direction: DESC}) {
+                  pageInfo {
+                    hasNextPage
+                    endCursor
+                  }
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+        """ )
+        graphqlresults = run_graphql_query( list_repositories_graphqlquery, queryvariables )
+
+        results["repositories"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["nodes"]
+        results["lastItemId"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
+        results["hasMorePages"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+
+    except InvalidRequest as error:
+        return error.flaskResponse
+
+    except Exception:
+        return flask.Response( getstacktrace(), status=500, mimetype='text/plain' )
+
+    dumped_json = json.dumps( results )
+    return flask.Response( dumped_json, status=200, mimetype='application/json' )
+
+
+@catch_remote_exceptions
+@APP.route('/detail_repository', endpoint='detail_repository', methods=['POST'])
+def detail_repository():
+    results = {}
+
+    try:
+        search_data = flask.request.json
+        log( 4, f"search_data {search_data}" )
+
+        validate_request_data( "repositoryUser", search_data, str )
+        validate_request_data( "repositoryName", search_data, str )
+
+        queryvariables = {
+            "user": search_data["repositoryUser"],
+            "repo": search_data["repositoryName"],
+        }
+
+        # https://graphql.org/learn/queries/
+        detail_repository_graphqlquery = wrap_text( """
+            query GetRepository($user: String!, $repo: String!) {
+              repository(owner: $user, name: $repo) {
+                createdAt
+                issues(states:OPEN) {
+                  totalCount
+                }
+                languages(first: 1) {
+                  nodes {
+                    name
+                  }
+                }
+              }
+            }
+        """ )
+        graphqlresults = run_graphql_query( detail_repository_graphqlquery, queryvariables )
+        results["repository_data"] = graphqlresults["data"]["repository"]
+
+    except InvalidRequest as error:
+        return error.flaskResponse
+
+    except Exception:
+        return flask.Response( getstacktrace(), status=500, mimetype='text/plain' )
 
     dumped_json = json.dumps( results )
     return flask.Response( dumped_json, status=200, mimetype='application/json' )
@@ -117,8 +269,13 @@ def run_graphql_query(graphqlquery, queryvariables={}):
     if request.status_code == 200:
         result = request.json()
 
-        if "data" not in result:
-            raise Exception( f"There is no data in the result!\n'{json.dumps( result, indent=2, sort_keys=True )}'" )
+        if "data" not in result or "errors" in result:
+            raise Exception( wrap_text( f"""
+                There were errors while processing the query!
+                {graphqlquery}
+                {queryvariables}
+                '{json.dumps( result, indent=2, sort_keys=True )}'
+            """ ) )
 
     else:
         raise Exception( wrap_text(

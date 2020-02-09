@@ -47,24 +47,24 @@ export interface Styles {
   showFooterMenuText: boolean,
   showSidebar: boolean,
   sidebarWidth: number,
-  sidebarCollapsed: boolean
+  sidebarCollapsed: boolean,
 }
 
 export interface MenuItem {
   icon: string,
-  text: string
+  text: any,
 }
 
 export interface Repository{
   nameWithOwner: string,
   description: string,
-  stargazers: { totalCount: number }
+  stargazers: { totalCount: number },
 }
 
 export interface RepositoryResults{
   rateLimit: string,
   repositoryCount: number,
-  repositories: Array<Repository>
+  repositories: Array<Repository>,
 }
 
 export default createHashKeyFromMenuItems;

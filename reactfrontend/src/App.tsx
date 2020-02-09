@@ -4,6 +4,7 @@ import FooterMenu from "./components/FooterMenu";
 import Content from "./components/Content";
 import Sidebar from "./components/Sidebar";
 
+import { Button } from 'reactstrap';
 import { Styles, MenuItem, RepositoryResults } from "./components/Utils";
 import { createHashKeyFromMenuItems, getEnvironmentVariable, prettyPrintError } from "./components/Utils";
 
@@ -84,23 +85,11 @@ class App extends React.Component<AppProps, AppState> {
       sidebarCollapsed: windowWidth < 1100
     };
 
-    const menuItems: Array<MenuItem> = styles.showSidebar
-      ? [
-        { icon: `😀`, text: "Item 1" },
-        { icon: `😉`, text: "Item 2" },
-        { icon: `😎`, text: "Item 3" },
-        { icon: `🤔`, text: "Item 4" },
-        { icon: `😛`, text: "Item 5" },
-        { icon: `😺️`, text: "Profile" },
-        { icon: `⚙`, text: "Settings" }
-      ]
-      : [
-        { icon: `😀`, text: "Item 1" },
-        { icon: `😉`, text: "Item 2" },
-        { icon: `😎`, text: "Item 3" },
-        { icon: `🤔`, text: "Item 4" },
-        { icon: `😛`, text: "Item 5" }
-      ];
+    const menuItems: Array<MenuItem> = [
+      { icon: `»`, text: <Button color="danger">Next Page</Button> },
+      { icon: `«`, text: <Button color="danger">Previous Page</Button> },
+    ]
+
     const menuItemsKey: string = createHashKeyFromMenuItems(menuItems)
 
     return (

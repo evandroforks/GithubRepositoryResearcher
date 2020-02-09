@@ -29,9 +29,10 @@ export class InputField extends React.Component<InputFieldProps, InputFieldState
     };
 
     return (
-      <form onSubmit={this.handleSubmit}>
-        <label>
-          <input type="text"
+      <form onSubmit={this.handleSubmit} style={{whiteSpace: "pre-line"}}>
+        <label style={contentStyle}>
+          <input
+            type="text"
             style={contentStyle}
             value={this.state.searchQuery}
             onChange={this.handleInputPathChange} />

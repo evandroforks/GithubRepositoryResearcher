@@ -11,7 +11,7 @@ interface AppProps {
 }
 
 interface AppState {
-  errorMessage: string
+  errorMessage: string,
   windowWidth: number,
   windowHeight: number,
   repositoryResults: RepositoryResults

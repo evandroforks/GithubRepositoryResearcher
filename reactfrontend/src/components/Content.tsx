@@ -12,6 +12,7 @@ interface ContentsProps {
   hasSendSearchQuery: boolean,
   searchQuery: string,
   isSearching: boolean,
+  itemsPerPage: number,
 }
 
 interface ContentsState {
@@ -36,7 +37,6 @@ export class Content extends React.Component<ContentsProps, ContentsState>
       paddingBottom: showSidebar ? 20 : this.props.styles.footerMenuHeight + 20,
       paddingLeft: showSidebar ? this.props.styles.sidebarWidth + 20 : 20
     };
-    const itemsPerPage = 10
 
     return (
       <div style={contentStyle}>
@@ -63,7 +63,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
             <RepositoryItem
               marginBottom={40}
               repository={repository}
-              pageOffSet={itemsPerPage * this.state.actualPage}
+              pageOffSet={this.props.itemsPerPage * this.state.actualPage}
               getBackEndUrl={this.props.getBackEndUrl}
               index={index}
               key={index + repository.nameWithOwner}

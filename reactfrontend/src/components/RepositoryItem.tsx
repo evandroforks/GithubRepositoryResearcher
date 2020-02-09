@@ -34,6 +34,8 @@ interface RepositoryItemState {
   userRepositories: Array<{ name: string }>,
   repositoryDetails: RepositoryDetails | null,
   isShowingDetails: boolean,
+  isLoadingDetails: boolean,
+  isLoadingRepositories: boolean,
 }
 
 export class Content extends React.Component<RepositoryItemProps, RepositoryItemState>
@@ -52,7 +54,9 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
       hasMorePages: true,
       lastItemId: null,
       userRepositories: [],
-      repositoryDetails: null
+      repositoryDetails: null,
+      isLoadingDetails: false,
+      isLoadingRepositories: false,
     }
   }
 
@@ -68,6 +72,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           {this.props.repository.nameWithOwner} { }
           ({this.props.repository.stargazers.totalCount.toLocaleString()} stars)
         </h2>
+
         <p>{this.props.repository.description}</p>
         {this.state.repositoryDetails != null && this.state.isShowingDetails && (
           <div>
@@ -87,8 +92,17 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
             )}
           </div>
         )}
-        <button type="button" onClick={this.loadMoreDetails} disabled={!this.state.hasMorePages}>More details...</button>
-        <button type="button" onClick={this.toggleDetails} disabled={this.state.repositoryDetails == null}>
+
+        <button type="button"
+          onClick={this.loadMoreDetails}
+          style={{ minWidth: "120px" }}
+          disabled={!this.state.hasMorePages}>
+          {this.state.isLoadingDetails || this.state.isLoadingRepositories ? "Loading more..." : "More details..."}
+        </button>
+        <button type="button"
+          onClick={this.toggleDetails}
+          style={{ minWidth: "120px" }}
+          disabled={this.state.repositoryDetails == null}>
           {this.state.isShowingDetails ? "Hide details" : "Show Details"}
         </button>
       </div>
@@ -101,10 +115,12 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
 
   loadMoreDetails() {
     if(this.state.repositoryDetails == null) {
+      this.setState({ isLoadingDetails: true })
       this.loadRepositoryDetails()
     }
 
     if(this.state.hasMorePages) {
+      this.setState({ isLoadingRepositories: true })
       this.loadUserRepositories()
     }
 
@@ -143,6 +159,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
 
                 this.setState({
                   repositoryDetails: response,
+                  isLoadingDetails: false,
                 });
               }).catch(this.setError)
           }
@@ -196,6 +213,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
                   userRepositories: userRepositories,
                   lastItemId: response.lastItemId,
                   hasMorePages: response.hasMorePages,
+                  isLoadingRepositories: false,
                 });
               }).catch(this.setError)
           }

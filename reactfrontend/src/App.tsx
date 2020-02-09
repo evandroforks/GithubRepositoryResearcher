@@ -18,11 +18,13 @@ interface AppState {
   windowHeight: number,
   repositoryResults: RepositoryResults,
   isSearching: boolean,
+  lastItemId: string | null,
 }
 
 class App extends React.Component<AppProps, AppState> {
   private backEndPort: string;
   private backEndIp: string;
+  private itemsPerPage: number;
 
   constructor(props: AppProps) {
     super(props);
@@ -31,11 +33,13 @@ class App extends React.Component<AppProps, AppState> {
     this.sendSearchQuery = this.sendSearchQuery.bind(this)
     this.updateDimensions = this.updateDimensions.bind(this)
 
+    this.itemsPerPage = 10
     this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
     this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
 
     this.state = {
       hasSendSearchQuery: false,
+      lastItemId: null,
       searchQuery: "",
       windowWidth: 0,
       windowHeight: 0,
@@ -121,6 +125,7 @@ class App extends React.Component<AppProps, AppState> {
           hasSendSearchQuery={this.state.hasSendSearchQuery}
           searchQuery={this.state.searchQuery}
           isSearching={this.state.isSearching}
+          itemsPerPage={this.itemsPerPage}
           key={"contents" + windowWidth} />
 
         {!styles.showSidebar && (
@@ -142,6 +147,8 @@ class App extends React.Component<AppProps, AppState> {
         body: JSON.stringify(
           {
             searchQuery: searchQuery,
+            lastItemId: this.state.lastItemId,
+            itemsPerPage: this.itemsPerPage,
           }
         ),
         headers: {

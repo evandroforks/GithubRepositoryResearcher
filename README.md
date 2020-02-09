@@ -89,6 +89,7 @@ The resulting **`JSON`** has the following format:
   ]
 }
 ```
+1. **`hasMorePages`** a boolean value determining whether there are new pages to show.
 1. **`repositoryCount`** is the total number of repositories found on the search.
 1. **`repositories`** are all repositories found from the requested **`lastItemId`** up to the given the **`itemsPerPage`** on the initial
    **`POST`** request.

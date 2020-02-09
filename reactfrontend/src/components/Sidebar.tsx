@@ -35,9 +35,9 @@ const Sidebar = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Sty
   return (
     <div style={sidebarStyle as React.CSSProperties} key={styles.sidebarWidth}>
       <div style={logoStyle as React.CSSProperties} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RRS" : "GitHub Repository Researcher"}</div>
-      {menuItems.map(item => (
-        <div style={menuItemStyle} data-tip={item.text} key={styles.sidebarWidth + item.text}>
-          <span style={iconStyle} key={styles.sidebarWidth}>{item.icon}</span>
+      {menuItems.map((item, index: number) => (
+        <div style={menuItemStyle} data-tip={item.text} key={styles.sidebarWidth + item.text + index}>
+          <span style={iconStyle} key={styles.sidebarWidth + index}>{item.icon}</span>
           {!styles.sidebarCollapsed && item.text}
         </div>
       ))}

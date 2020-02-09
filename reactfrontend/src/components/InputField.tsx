@@ -1,11 +1,13 @@
 import React from "react";
 
 interface InputFieldProps {
-  sendSearchQuery: Function;
+  sendSearchQuery: Function,
+  isSearching: boolean,
+  hasSendSearchQuery: boolean
 }
 
 interface InputFieldState {
-  searchQuery: string;
+  searchQuery: string,
 }
 
 export class InputField extends React.Component<InputFieldProps, InputFieldState>
@@ -17,7 +19,7 @@ export class InputField extends React.Component<InputFieldProps, InputFieldState
     this.handleInputPathChange = this.handleInputPathChange.bind(this)
 
     this.state = {
-      searchQuery: "language:javascript sort:stars"
+      searchQuery: "language:javascript sort:stars",
     };
   }
 
@@ -34,7 +36,10 @@ export class InputField extends React.Component<InputFieldProps, InputFieldState
             value={this.state.searchQuery}
             onChange={this.handleInputPathChange} />
         </label>
-        <input type="submit" value="Start Searching" />
+        <input
+          type="submit"
+          value={this.props.isSearching ? "Searching..." : this.props.hasSendSearchQuery ? "Start New Search" : "Start Searching"}
+          disabled={this.props.isSearching} />
       </form>
     )
   }

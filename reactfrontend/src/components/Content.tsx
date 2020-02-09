@@ -10,7 +10,8 @@ interface ContentsProps {
   getBackEndUrl: Function,
   repositoryResults: RepositoryResults,
   hasSendSearchQuery: boolean,
-  searchQuery: string
+  searchQuery: string,
+  isSearching: boolean
 }
 
 interface ContentsState {
@@ -43,7 +44,10 @@ export class Content extends React.Component<ContentsProps, ContentsState>
           <div dangerouslySetInnerHTML={{ __html: this.props.errorMessage }} />
         }
 
-        <InputField sendSearchQuery={this.props.sendSearchQuery} />
+        <InputField
+          sendSearchQuery={this.props.sendSearchQuery}
+          isSearching={this.props.isSearching}
+          hasSendSearchQuery={this.props.hasSendSearchQuery}/>
 
         {(this.props.repositoryResults.repositoryCount > 0 &&
           <p>Total repositories found: {this.props.repositoryResults.repositoryCount.toLocaleString()}</p>)

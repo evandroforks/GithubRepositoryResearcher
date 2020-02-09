@@ -16,7 +16,8 @@ interface AppState {
   errorMessage: string,
   windowWidth: number,
   windowHeight: number,
-  repositoryResults: RepositoryResults
+  repositoryResults: RepositoryResults,
+  isSearching: boolean
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -39,6 +40,7 @@ class App extends React.Component<AppProps, AppState> {
       windowWidth: 0,
       windowHeight: 0,
       errorMessage: "",
+      isSearching: false,
       repositoryResults: {repositoryCount: 0, repositories: []}
     };
   }
@@ -118,6 +120,7 @@ class App extends React.Component<AppProps, AppState> {
           repositoryResults={this.state.repositoryResults}
           hasSendSearchQuery={this.state.hasSendSearchQuery}
           searchQuery={this.state.searchQuery}
+          isSearching={this.state.isSearching}
           key={"contents" + windowWidth} />
 
         {!styles.showSidebar && (
@@ -129,6 +132,7 @@ class App extends React.Component<AppProps, AppState> {
 
   sendSearchQuery(searchQuery: string) {
     // console.log("Sending searchQuery", searchQuery)
+    this.setState({ isSearching: true })
 
     // https://stackoverflow.com/questions/39565706/post-request-with-fetch-api
     fetch(
@@ -161,6 +165,7 @@ class App extends React.Component<AppProps, AppState> {
                   repositoryResults: response,
                   hasSendSearchQuery: true,
                   searchQuery: searchQuery,
+                  isSearching: false
                 });
             }).catch(this.setError)
           }

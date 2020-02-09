@@ -32,19 +32,22 @@ interface RepositoryItemState {
   lastItemId: string | null,
   errorMessage: string,
   userRepositories: Array<{ name: string }>,
-  repositoryDetails: RepositoryDetails | null
+  repositoryDetails: RepositoryDetails | null,
+  isShowingDetails: boolean,
 }
 
 export class Content extends React.Component<RepositoryItemProps, RepositoryItemState>
 {
   constructor(props: RepositoryItemProps) {
     super(props);
+    this.toggleDetails = this.toggleDetails.bind(this)
     this.loadMoreDetails = this.loadMoreDetails.bind(this)
     this.loadRepositoryDetails = this.loadRepositoryDetails.bind(this)
     this.loadUserRepositories = this.loadUserRepositories.bind(this)
 
     this.state = {
       itemPage: 0,
+      isShowingDetails: false,
       errorMessage: "",
       hasMorePages: true,
       lastItemId: null,
@@ -66,7 +69,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           ({this.props.repository.stargazers.totalCount.toLocaleString()} stars)
         </h2>
         <p>{this.props.repository.description}</p>
-        {this.state.repositoryDetails != null && (
+        {this.state.repositoryDetails != null && this.state.isShowingDetails && (
           <div>
             <b>Created at</b>: {this.state.repositoryDetails?.createdAt.replace(/(?<=-\d\d)T|(?<=:\d\d)Z/g, ", ")}
             <b>Open Issues count</b>: {this.state.repositoryDetails?.issues.totalCount}, { }
@@ -85,8 +88,15 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           </div>
         )}
         <button type="button" onClick={this.loadMoreDetails} disabled={!this.state.hasMorePages}>More details...</button>
+        <button type="button" onClick={this.toggleDetails} disabled={this.state.repositoryDetails == null}>
+          {this.state.isShowingDetails ? "Hide details" : "Show Details"}
+        </button>
       </div>
     );
+  }
+
+  toggleDetails() {
+    this.setState({ isShowingDetails: !this.state.isShowingDetails } )
   }
 
   loadMoreDetails() {
@@ -97,6 +107,8 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
     if(this.state.hasMorePages) {
       this.loadUserRepositories()
     }
+
+    this.setState( { isShowingDetails: true } )
   }
 
   loadRepositoryDetails() {

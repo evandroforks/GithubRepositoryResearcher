@@ -74,15 +74,15 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
                 )
               }
             )}
-            User Repositories: {this.state.userRepositories.map((item: { name: string }) => {
+            User Repositories: {this.state.userRepositories.map((item: { name: string }, index: number) => {
                 return (
-                  <span key={item.name}>{item.name}, </span>
+                  <span key={item.name + index}>{item.name}, </span>
                 )
               }
             )}
           </div>
         )}
-        <button type="button" onClick={this.loadMoreDetails}>More details...</button>
+        <button type="button" onClick={this.loadMoreDetails} disabled={!this.state.hasMorePages}>More details...</button>
       </div>
     );
   }
@@ -154,7 +154,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           {
             repositoryUser: this.props.repository.nameWithOwner.split("/")[0],
             lastItemId: this.state.lastItemId,
-            itemsPerPage: 10,
+            itemsPerPage: 100,
           }
         ),
         headers: {

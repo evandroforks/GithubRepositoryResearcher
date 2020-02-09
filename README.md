@@ -145,18 +145,16 @@ within details about the given **`repositoryName`** from the requested **`reposi
 The resulting **`JSON`** has the following format:
 ```json
 {
-  "repository_data":{
-    "createdAt":"2016-08-09T21:16:45Z",
-    "issues":{
-      "totalCount":74
-    },
-    "languages":{
-      "nodes":[
-        {
-          "name":"Shell"
-        }
-      ]
-    }
+  "createdAt":"2016-08-09T21:16:45Z",
+  "issues":{
+    "totalCount":74
+  },
+  "languages":{
+    "nodes":[
+      {
+        "name":"Shell"
+      }
+    ]
   }
 }
 ```

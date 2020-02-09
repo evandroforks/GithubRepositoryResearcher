@@ -116,7 +116,7 @@ def search_github():
         log( 4, f"search_data {search_data}" )
 
         validate_request_data( "searchQuery", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, int )
+        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
         validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
@@ -173,7 +173,7 @@ def list_repositories():
         log( 4, f"search_data {search_data}" )
 
         validate_request_data( "repositoryUser", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, str )
+        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
         validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
@@ -249,7 +249,7 @@ def detail_repository():
             }
         """ )
         graphqlresults = run_graphql_query( detail_repository_graphqlquery, queryvariables )
-        results["repository_data"] = graphqlresults["data"]["repository"]
+        results = graphqlresults["data"]["repository"]
 
     except InvalidRequest as error:
         return error.flaskResponse

@@ -184,9 +184,9 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertEqual( 200, response.status_code )
 
         json_response = json.loads( response.content )
-        self.assertEqual( len( json_response ), 1 )
-        self.assertGreater( len( json_response["repository_data"] ), 2 )
-        self.assertIn( "totalCount", json_response["repository_data"]["issues"] )
+        self.assertEqual( len( json_response ), 3 )
+        self.assertGreater( len( json_response ), 2 )
+        self.assertIn( "totalCount", json_response["issues"] )
 
 
 def load_tests(loader, standard_tests, pattern):

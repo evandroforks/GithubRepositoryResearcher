@@ -22,6 +22,11 @@ export function getEnvironmentVariable(variable_name: string, default_value: str
   return value_get;
 }
 
+// https://stackoverflow.com/questions/57997595/how-to-extend-the-built-in-array-type-on-typescript
+export function extendArray(first: Array<any>, other: Array<any>) {
+  other.forEach(function (element: any) { first.push(element) }, other);
+}
+
 export function prettyPrintError(error: any) {
   let message: string = `
       name: ${error.name}

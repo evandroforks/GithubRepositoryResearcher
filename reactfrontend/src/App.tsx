@@ -11,6 +11,8 @@ interface AppProps {
 }
 
 interface AppState {
+  hasSendSearchQuery: boolean,
+  searchQuery: string,
   errorMessage: string,
   windowWidth: number,
   windowHeight: number,
@@ -32,6 +34,8 @@ class App extends React.Component<AppProps, AppState> {
     this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
 
     this.state = {
+      hasSendSearchQuery: false,
+      searchQuery: "",
       windowWidth: 0,
       windowHeight: 0,
       errorMessage: "",
@@ -110,7 +114,10 @@ class App extends React.Component<AppProps, AppState> {
         <Content styles={styles}
           errorMessage={this.state.errorMessage}
           sendSearchQuery={this.sendSearchQuery}
+          getBackEndUrl={this.getBackEndUrl}
           repositoryResults={this.state.repositoryResults}
+          hasSendSearchQuery={this.state.hasSendSearchQuery}
+          searchQuery={this.state.searchQuery}
           key={"contents" + windowWidth} />
 
         {!styles.showSidebar && (
@@ -121,7 +128,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   sendSearchQuery(searchQuery: string) {
-    console.log("Sending searchQuery", searchQuery)
+    // console.log("Sending searchQuery", searchQuery)
 
     // https://stackoverflow.com/questions/39565706/post-request-with-fetch-api
     fetch(
@@ -139,19 +146,21 @@ class App extends React.Component<AppProps, AppState> {
         },
       }).then(
         response => {
-          console.log('Server response', response);
+          // console.log('Server response', response);
 
           // https://stackoverflow.com/questions/51568437/return-body-text-from-fetch-api
           if (response.ok) {
             var repositories_response = response.json()
-            console.log( 'Server response OK:', repositories_response );
+            // console.log( 'Server response OK:', repositories_response );
 
             repositories_response.then(
               (response: RepositoryResults) => {
-                console.log( 'Server response:', response );
+                // console.log( 'Server response:', response );
 
                 this.setState({
                   repositoryResults: response,
+                  hasSendSearchQuery: true,
+                  searchQuery: searchQuery,
                 });
             }).catch(this.setError)
           }

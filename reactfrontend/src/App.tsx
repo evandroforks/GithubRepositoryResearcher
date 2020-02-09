@@ -17,7 +17,7 @@ interface AppState {
   windowWidth: number,
   windowHeight: number,
   repositoryResults: RepositoryResults,
-  isSearching: boolean
+  isSearching: boolean,
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -41,7 +41,7 @@ class App extends React.Component<AppProps, AppState> {
       windowHeight: 0,
       errorMessage: "",
       isSearching: false,
-      repositoryResults: {repositoryCount: 0, repositories: []}
+      repositoryResults: {rateLimit: "", repositoryCount: 0, repositories: []}
     };
   }
 
@@ -155,11 +155,12 @@ class App extends React.Component<AppProps, AppState> {
           // https://stackoverflow.com/questions/51568437/return-body-text-from-fetch-api
           if (response.ok) {
             var repositories_response = response.json()
-            // console.log( 'Server response OK:', repositories_response );
+            // console.log('Server response OK:', repositories_response);
 
             repositories_response.then(
               (response: RepositoryResults) => {
-                // console.log( 'Server response:', response );
+                // console.log('Server response:', response);
+                console.log( response.rateLimit );
 
                 this.setState({
                   repositoryResults: response,

@@ -112,6 +112,7 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
 
         self.assertIn( "hasMorePages", json_response )
         self.assertGreater( len( json_response["lastItemId"] ), 2 )
+        self.assertGreater( len( json_response["rateLimit"] ), 20 )
 
     def test_empty_server_list_repositories_request(self):
         response = requests.post(
@@ -145,11 +146,12 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertEqual( 200, response.status_code )
 
         json_response = json.loads( response.content )
-        self.assertEqual( len( json_response ), 3 )
+        self.assertEqual( len( json_response ), 4 )
         self.assertGreater( len( json_response["repositories"] ), 2 )
 
         self.assertIn( "hasMorePages", json_response )
         self.assertGreater( len( json_response["lastItemId"] ), 2 )
+        self.assertGreater( len( json_response["rateLimit"] ), 20 )
 
     def test_empty_server_detail_repositories_request(self):
         response = requests.post(
@@ -184,8 +186,9 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertEqual( 200, response.status_code )
 
         json_response = json.loads( response.content )
-        self.assertEqual( len( json_response ), 3 )
+        self.assertEqual( len( json_response ), 4 )
         self.assertGreater( len( json_response ), 2 )
+        self.assertGreater( len( json_response["rateLimit"] ), 20 )
         self.assertIn( "totalCount", json_response["issues"] )
 
 

@@ -74,6 +74,7 @@ within a list of repositories matching the **`searchQuery`** up to **`itemsPerPa
 The resulting **`JSON`** has the following format:
 ```json
 {
+  "rateLimit": "User evandrocoan, rate limit 4975, cost 1, remaining 4975, ..., ",
   "hasMorePages":true,
   "lastItemId":"Y3Vyc29yOnYyOpIJzgKrPxE=",
   "repositoryCount": 9280591,
@@ -110,6 +111,7 @@ within a list of repositories matching the **`repositoryUser`** up to **`itemsPe
 The resulting **`JSON`** has the following format:
 ```json
 {
+  "rateLimit": "User evandrocoan, rate limit 4975, cost 1, remaining 4975, ..., ",
   "hasMorePages":true,
   "lastItemId":"Y3Vyc29yOnYyOpIJzgKrPxE=",
   "repositories":[
@@ -145,6 +147,7 @@ within details about the given **`repositoryName`** from the requested **`reposi
 The resulting **`JSON`** has the following format:
 ```json
 {
+  "rateLimit": "User evandrocoan, rate limit 4975, cost 1, remaining 4975, ..., ",
   "createdAt":"2016-08-09T21:16:45Z",
   "issues":{
     "totalCount":74

@@ -61,6 +61,7 @@ export interface Repository{
 }
 
 export interface RepositoryResults{
+  rateLimit: string,
   repositoryCount: number,
   repositories: Array<Repository>
 }

@@ -2,6 +2,7 @@ import React from "react";
 import { Repository, prettyPrintError, extendArray } from "./Utils";
 
 interface RepositoryDetails {
+  rateLimit: string,
   createdAt: string,
   issues: { totalCount: number },
   languages: {
@@ -10,6 +11,7 @@ interface RepositoryDetails {
 }
 
 interface UserRepository {
+  rateLimit: string,
   hasMorePages: false,
   lastItemId: string,
   repositories: Array<{
@@ -125,6 +127,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
             repositories_response.then(
               (response: RepositoryDetails) => {
                 // console.log( 'Server response:', response );
+                console.log(response.rateLimit);
 
                 this.setState({
                   repositoryDetails: response,
@@ -171,7 +174,8 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
 
             repositories_response.then(
               (response: UserRepository) => {
-                // console.log( 'Server response:', response );
+                // console.log('Server response:', response);
+                console.log(response.rateLimit);
 
                 let userRepositories = this.state.userRepositories
                 extendArray(userRepositories, response.repositories)

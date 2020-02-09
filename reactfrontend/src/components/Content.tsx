@@ -11,7 +11,7 @@ interface ContentsProps {
   repositoryResults: RepositoryResults,
   hasSendSearchQuery: boolean,
   searchQuery: string,
-  isSearching: boolean
+  isSearching: boolean,
 }
 
 interface ContentsState {
@@ -49,12 +49,14 @@ export class Content extends React.Component<ContentsProps, ContentsState>
           isSearching={this.props.isSearching}
           hasSendSearchQuery={this.props.hasSendSearchQuery}/>
 
-        {(this.props.repositoryResults.repositoryCount > 0 &&
-          <p>Total repositories found: {this.props.repositoryResults.repositoryCount.toLocaleString()}</p>)
-        }
-        {(this.props.hasSendSearchQuery && this.props.repositoryResults.repositoryCount < 1 &&
-          <p>No repositories found!</p>)
-        }
+        <p>
+          {(this.props.repositoryResults.repositoryCount > 0 &&
+            <span>Total repositories found: {this.props.repositoryResults.repositoryCount.toLocaleString()}</span>)
+          }
+          {(this.props.hasSendSearchQuery && this.props.repositoryResults.repositoryCount < 1 &&
+            <span>No repositories found!</span>)
+          }
+        </p>
 
         {this.props.repositoryResults.repositories.map((repository: Repository, index: number) => {
           return (

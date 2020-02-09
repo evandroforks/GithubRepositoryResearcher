@@ -33,36 +33,40 @@ APP = flask.Flask(
 # https://stackoverflow.com/questions/43871637/no-access-control-allow-origin-header-is-present
 flask_cors.CORS( APP )
 
+github_ratelimit_graphql = wrap_text( """
+    rateLimit {
+        limit
+        cost
+        remaining
+        resetAt
+    }
+    viewer {
+        login
+    }
+""" )
+
 def main():
     log( f"headers {str(headers)[:30]}..." )
     log( f"REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT' )}..." )
 
-    result = run_graphql_query( wrap_text( """
-        {
-            viewer {
-                login
-            }
-            rateLimit {
-                limit
-                cost
-                remaining
-                resetAt
-            }
-        }
-    """, trim_spaces=" " ) )
-
-    log( f"User {result['data']['viewer']['login']}, "
-        f"rate limit {result['data']['rateLimit']['remaining']}, "
-        f"cost {result['data']['rateLimit']['cost']}, "
-        f"remaining {result['data']['rateLimit']['remaining']}, "
-        f"reset {result['data']['rateLimit']['resetAt']}, "
-    )
+    graphqlresults = run_graphql_query( f"{{{github_ratelimit_graphql}}}" )
+    log( formatratelimit( graphqlresults["data"] ) )
 
     APP.run(
         threaded=True,
         debug=True,
         host="0.0.0.0",
         port=os.environ["REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT"]
+    )
+
+
+def formatratelimit(resultdata):
+    return (
+        f"User {resultdata['viewer']['login']}, "
+        f"rate limit {resultdata['rateLimit']['remaining']}, "
+        f"cost {resultdata['rateLimit']['cost']}, "
+        f"remaining {resultdata['rateLimit']['remaining']}, "
+        f"reset {resultdata['rateLimit']['resetAt']}, "
     )
 
 
@@ -144,14 +148,16 @@ def search_github():
                   }
                 }
               }
+              %s
             }
-        """ )
+        """ ) % github_ratelimit_graphql
         graphqlresults = run_graphql_query( search_github_graphqlquery, queryvariables )
 
         results["repositoryCount"] = graphqlresults["data"]["search"]["repositoryCount"]
         results["repositories"] = graphqlresults["data"]["search"]["nodes"]
         results["lastItemId"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
         results["hasMorePages"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
+        results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
         return error.flaskResponse
@@ -197,13 +203,15 @@ def list_repositories():
                   }
                 }
               }
+              %s
             }
-        """ )
+        """ ) % github_ratelimit_graphql
         graphqlresults = run_graphql_query( list_repositories_graphqlquery, queryvariables )
 
         results["repositories"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["nodes"]
         results["lastItemId"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
         results["hasMorePages"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+        results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
         return error.flaskResponse
@@ -246,10 +254,12 @@ def detail_repository():
                   }
                 }
               }
+              %s
             }
-        """ )
+        """ ) % github_ratelimit_graphql
         graphqlresults = run_graphql_query( detail_repository_graphqlquery, queryvariables )
         results = graphqlresults["data"]["repository"]
+        results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
         return error.flaskResponse

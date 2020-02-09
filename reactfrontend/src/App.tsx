@@ -129,7 +129,9 @@ class App extends React.Component<AppProps, AppState> {
         style={{
           backgroundColor: styles.black(0.05),
           minHeight: "100vh",
-          position: "relative"
+          position: "relative",
+          maxWidth: "1200px",
+          margin: "auto",
         }}
         key={windowWidth}
       >

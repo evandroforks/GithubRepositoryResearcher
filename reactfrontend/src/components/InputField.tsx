@@ -38,8 +38,14 @@ export class InputField extends React.Component<InputFieldProps, InputFieldState
         </label>
         <input
           type="submit"
+          style={{ width: "120px" }}
           value={this.props.isSearching ? "Searching..." : this.props.hasSendSearchQuery ? "Start New Search" : "Start Searching"}
-          disabled={this.props.isSearching} />
+          disabled={this.props.isSearching} /> { }
+
+        See <a target="_blank" rel="noopener noreferrer"
+          href="https://help.github.com/en/github/searching-for-information-on-github/searching-for-repositories">
+          Searching for repositories</a> {}
+          to learn more about the query syntax.
       </form>
     )
   }

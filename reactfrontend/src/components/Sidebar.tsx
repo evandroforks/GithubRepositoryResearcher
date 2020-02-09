@@ -1,4 +1,5 @@
 import React from "react";
+import ReactTooltip from 'react-tooltip'
 import { Styles, MenuItem } from "./Utils";
 
 const Sidebar = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Styles}) => {
@@ -35,11 +36,12 @@ const Sidebar = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Sty
     <div style={sidebarStyle as React.CSSProperties} key={styles.sidebarWidth}>
       <div style={logoStyle as React.CSSProperties} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RRS" : "GitHub Repository Researcher"}</div>
       {menuItems.map(item => (
-        <div style={menuItemStyle} key={styles.sidebarWidth + item.text}>
+        <div style={menuItemStyle} data-tip={item.text} key={styles.sidebarWidth + item.text}>
           <span style={iconStyle} key={styles.sidebarWidth}>{item.icon}</span>
           {!styles.sidebarCollapsed && item.text}
         </div>
       ))}
+      <ReactTooltip effect="float" />
     </div>
   );
 };

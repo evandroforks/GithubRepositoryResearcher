@@ -2,40 +2,57 @@ import React from "react";
 import { Styles, RepositoryResults, Repository } from "./Utils";
 import InputFieldComponent from "./InputFieldComponent";
 
-const Content = ({ styles, errorMessage, sendSearchQuery, repositoryResults }:
-  { styles: Styles, errorMessage: string, sendSearchQuery: Function, repositoryResults: RepositoryResults}) =>
+interface ContentsProps {
+  styles: Styles,
+  errorMessage: string,
+  sendSearchQuery: Function,
+  repositoryResults: RepositoryResults
+}
+
+interface ContentsState {
+}
+
+export class Content extends React.Component<ContentsProps, ContentsState>
 {
-  const { showSidebar } = styles;
+  constructor(props: ContentsProps) {
+    super(props);
+    this.state = {
+    }
+  }
 
-  const contentStyle = {
-    paddingTop: showSidebar ? 20 : styles.topBarHeight + 20,
-    paddingRight: 20,
-    paddingBottom: showSidebar ? 20 : styles.footerMenuHeight + 20,
-    paddingLeft: showSidebar ? styles.sidebarWidth + 20 : 20
-  };
+  render() {
+    const { showSidebar } = this.props.styles;
 
-  return (
-    <div style={contentStyle}>
-      {errorMessage.length > 0 &&
-        <div dangerouslySetInnerHTML={{ __html: errorMessage }} />
-      }
+    const contentStyle = {
+      paddingTop: showSidebar ? 20 : this.props.styles.topBarHeight + 20,
+      paddingRight: 20,
+      paddingBottom: showSidebar ? 20 : this.props.styles.footerMenuHeight + 20,
+      paddingLeft: showSidebar ? this.props.styles.sidebarWidth + 20 : 20
+    };
 
-      <InputFieldComponent sendSearchQuery={sendSearchQuery} />
+    return (
+      <div style={contentStyle}>
+        {this.props.errorMessage.length > 0 &&
+          <div dangerouslySetInnerHTML={{ __html: this.props.errorMessage }} />
+        }
 
-      {(repositoryResults.repositoryCount > 0 &&
-        <p>Total repositories found: {repositoryResults.repositoryCount}</p>) || <p>No repositories available to display.</p>
-      }
+        <InputFieldComponent sendSearchQuery={this.props.sendSearchQuery} />
 
-      {repositoryResults.repositories.map((repository: Repository, i) => {
-        return (
-          <div key={i} style={{ marginBottom: 40 }}>
-            <h2 style={{ marginBottom: 0 }}>{i + 1}. {repository.nameWithOwner} ({repository.stargazers.totalCount.toLocaleString()} stars)</h2>
-            <p>{repository.description}</p>
-          </div>
-        );
-      })}
-    </div>
-  );
+        {(this.props.repositoryResults.repositoryCount > 0 &&
+          <p>Total repositories found: {this.props.repositoryResults.repositoryCount}</p>) || <p>No repositories available to display.</p>
+        }
+
+        {this.props.repositoryResults.repositories.map((repository: Repository, i) => {
+          return (
+            <div key={i} style={{ marginBottom: 40 }}>
+              <h2 style={{ marginBottom: 0 }}>{i + 1}. {repository.nameWithOwner} ({repository.stargazers.totalCount.toLocaleString()} stars)</h2>
+              <p>{repository.description}</p>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
 };
 
 export default Content;

@@ -68,17 +68,17 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
         <p>{this.props.repository.description}</p>
         {this.state.repositoryDetails != null && (
           <div>
-            Created at: {this.state.repositoryDetails?.createdAt.replace(/(?<=-\d\d)T|(?<=:\d\d)Z/g, ", ")}
-            Open Issues count: {this.state.repositoryDetails?.issues.totalCount}, { }
-            Top Language: {this.state.repositoryDetails?.languages.nodes.map( (item: { name: string }, index: number) => {
+            <b>Created at</b>: {this.state.repositoryDetails?.createdAt.replace(/(?<=-\d\d)T|(?<=:\d\d)Z/g, ", ")}
+            <b>Open Issues count</b>: {this.state.repositoryDetails?.issues.totalCount}, { }
+            <b>Top Language</b>: {this.state.repositoryDetails?.languages.nodes.map( (item: { name: string }, index: number) => {
                 return (
-                  <span key={item.name}>{item.name + index}, </span>
+                  <span key={item.name + index}>{item.name}, </span>
                 )
               }
             )}
-            User Repositories: {this.state.userRepositories.map((item: { name: string }, index: number) => {
+            <b>User Repositories</b>: {this.state.userRepositories.map((item: { name: string }, index: number) => {
                 return (
-                  <span key={item.name + index}>{item.name}, </span>
+                  <span key={item.name + index}><b>{index + 1})</b> { } {item.name}, </span>
                 )
               }
             )}

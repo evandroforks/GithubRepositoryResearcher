@@ -1,7 +1,9 @@
 import React from "react";
 import { Styles, MenuItem } from "./Utils";
+import ReactTooltip from 'react-tooltip'
 
 const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Styles}) => {
+
   return (
     <div
       style={{
@@ -18,6 +20,7 @@ const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: 
       {menuItems.map((item, i) => {
         return (
           <div
+            data-tip={item.text.props.children}
             key={i}
             style={{
               display: "flex",
@@ -32,6 +35,7 @@ const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: 
           </div>
         );
       })}
+      <ReactTooltip effect="float" />
     </div>
   );
 };

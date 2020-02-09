@@ -17,6 +17,7 @@ interface AppState {
   windowHeight: number,
   repositoryResults: RepositoryResults,
   isSearching: boolean,
+  actualSearchPageDelayed: number,
 }
 
 class App extends React.Component<AppProps, AppState> {
@@ -29,7 +30,6 @@ class App extends React.Component<AppProps, AppState> {
   private lastItemId: string | null;
   private hasMorePages: boolean;
   private actualSearchPage: number;
-  private actualSearchPageDelayed: number;
 
   constructor(props: AppProps) {
     super(props);
@@ -47,11 +47,11 @@ class App extends React.Component<AppProps, AppState> {
     this.itemsPerPage = 50
     this.hasMorePages = false
     this.actualSearchPage = 0
-    this.actualSearchPageDelayed = 0
     this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
     this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
 
     this.state = {
+      actualSearchPageDelayed: 0,
       windowWidth: 0,
       windowHeight: 0,
       errorMessage: "",
@@ -88,6 +88,7 @@ class App extends React.Component<AppProps, AppState> {
       black: (opacity: number = 1) => `rgba(0, 0, 0, ${opacity})`,
       topBarHeight: 40,
       footerMenuHeight: 50,
+      windowWidth: windowWidth,
       showFooterMenuText: windowWidth > 500,
       isTitleCollapsed: windowWidth < 350,
       showSidebar: windowWidth > 768,
@@ -150,8 +151,8 @@ class App extends React.Component<AppProps, AppState> {
           searchQuery={this.searchQuery}
           isSearching={this.state.isSearching}
           itemsPerPage={this.itemsPerPage}
-          actualSearchPage={this.actualSearchPageDelayed}
-          key={"contents" + windowWidth} />
+          actualSearchPage={this.state.actualSearchPageDelayed}
+          key={"contents" + windowWidth + this.actualSearchPage + this.state.actualSearchPageDelayed} />
 
         {!styles.showSidebar && (
           <FooterMenu menuItems={menuItems} styles={styles} key={menuItemsKey} />
@@ -186,7 +187,7 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   sendSearchQuery(searchQuery: string, restart = true) {
-    // console.log("Sending searchQuery", searchQuery)
+    // console.log("Sending searchQuery", searchQuery, "lastItemId", this.lastItemId)
     if(restart && this.searchQuery === searchQuery) {
       this.lastItemId = null
       this.hasMorePages = false
@@ -224,14 +225,14 @@ class App extends React.Component<AppProps, AppState> {
           repositories_response.then(
             (response: RepositoryResults) => {
               // console.log('Server response:', response);
-              console.log( response.rateLimit );
+              // console.log( response.rateLimit );
               this.lastItemId = response.lastItemId
               this.hasMorePages = response.hasMorePages
-              this.actualSearchPageDelayed = this.actualSearchPage
 
               this.setState({
                 repositoryResults: response,
-                isSearching: false
+                isSearching: false,
+                actualSearchPageDelayed: this.actualSearchPage,
               });
             }).catch(this.setError)
           }

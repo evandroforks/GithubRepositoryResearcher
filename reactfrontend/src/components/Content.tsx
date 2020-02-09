@@ -38,7 +38,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
     };
 
     return (
-      <div style={contentStyle}>
+      <div style={contentStyle} key={this.props.actualSearchPage +  this.props.styles.windowWidth}>
         {this.props.errorMessage.length > 0 &&
           <div dangerouslySetInnerHTML={{ __html: this.props.errorMessage }} />
         }
@@ -65,7 +65,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
               pageOffSet={this.props.itemsPerPage * this.props.actualSearchPage}
               getBackEndUrl={this.props.getBackEndUrl}
               index={index}
-              key={index + repository.nameWithOwner}
+              key={index + repository.nameWithOwner + this.props.itemsPerPage * this.props.actualSearchPage}
             />
           );
         })}

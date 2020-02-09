@@ -63,6 +63,8 @@ export interface Repository{
 
 export interface RepositoryResults{
   rateLimit: string,
+  lastItemId: string | null,
+  hasMorePages: boolean,
   repositoryCount: number,
   repositories: Array<Repository>,
 }

@@ -172,7 +172,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
                   + text);
               }).catch(this.setError)
           }
-        }).catch(this.setError)
+      }).catch(this.setError)
   }
 
   loadUserRepositories() {
@@ -226,7 +226,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
                   + text);
               }).catch(this.setError)
           }
-        }).catch(this.setError)
+      }).catch(this.setError)
   }
 
   setError(error: Error) {

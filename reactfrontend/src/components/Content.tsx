@@ -13,10 +13,10 @@ interface ContentsProps {
   searchQuery: string,
   isSearching: boolean,
   itemsPerPage: number,
+  actualSearchPage: number,
 }
 
 interface ContentsState {
-  actualPage: number
 }
 
 export class Content extends React.Component<ContentsProps, ContentsState>
@@ -24,7 +24,6 @@ export class Content extends React.Component<ContentsProps, ContentsState>
   constructor(props: ContentsProps) {
     super(props);
     this.state = {
-      actualPage: 0
     }
   }
 
@@ -63,7 +62,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
             <RepositoryItem
               marginBottom={40}
               repository={repository}
-              pageOffSet={this.props.itemsPerPage * this.state.actualPage}
+              pageOffSet={this.props.itemsPerPage * this.props.actualSearchPage}
               getBackEndUrl={this.props.getBackEndUrl}
               index={index}
               key={index + repository.nameWithOwner}

@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom';
 
 test('renders GitHub Repository Researcher site name', () => {
   const { getByText } = render(<App />);
-  const linkElement = getByText(/GH RRS/i);
+  const linkElement = getByText(/GH RS/i);
   expect(linkElement).toBeInTheDocument();
 });
 

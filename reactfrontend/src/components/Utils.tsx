@@ -51,7 +51,7 @@ export interface Styles {
 }
 
 export interface MenuItem {
-  icon: string,
+  icon: any,
   text: any,
 }
 

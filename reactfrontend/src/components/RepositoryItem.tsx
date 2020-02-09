@@ -67,11 +67,11 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           <div dangerouslySetInnerHTML={{ __html: this.state.errorMessage }} />
         }
 
-        <h2 style={{ marginBottom: 0 }}>
+        <h5 style={{ marginBottom: 0 }}>
           {this.props.index + this.props.pageOffSet + 1}. { }
-          {this.props.repository.nameWithOwner} { }
+          {this.props.repository.nameWithOwner.replace("/", " / ")} { }
           ({this.props.repository.stargazers.totalCount.toLocaleString()} stars)
-        </h2>
+        </h5>
 
         <p>{this.props.repository.description}</p>
         {this.state.repositoryDetails != null && this.state.isShowingDetails && (

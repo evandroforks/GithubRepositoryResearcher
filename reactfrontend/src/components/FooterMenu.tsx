@@ -12,7 +12,7 @@ const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: 
         backgroundColor: "#333",
         color: "#fff",
         position: "fixed",
-        bottom: 0
+        bottom: 0,
       }}
     >
       {menuItems.map((item, i) => {
@@ -23,11 +23,12 @@ const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: 
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              flex: 1
+              flex: 1,
             }}
           >
-            <span style={{ marginRight: 5, fontSize: 20 }}>{item.icon}</span>
-            {styles.showFooterMenuText && item.text}
+            {(styles.showFooterMenuText && item.text) ||
+              <span style={{ marginLeft: 5, fontSize: 20 }}>{item.icon}</span>
+            }
           </div>
         );
       })}

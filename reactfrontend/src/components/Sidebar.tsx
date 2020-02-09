@@ -27,18 +27,19 @@ const Sidebar = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: Sty
   const logoStyle = {
     textAlign: "center",
     color: styles.white(),
-    fontSize: 34,
+    fontSize: 28,
     marginBottom: 60,
     fontWeight: "bold"
   };
 
   return (
     <div style={sidebarStyle as React.CSSProperties} key={styles.sidebarWidth}>
-      <div style={logoStyle as React.CSSProperties} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RRS" : "GitHub Repository Researcher"}</div>
+      <div style={logoStyle as React.CSSProperties} key={styles.sidebarWidth}>{styles.sidebarCollapsed ? "GH RS" : "GitHub Repository Researcher"}</div>
       {menuItems.map((item, index: number) => (
-        <div style={menuItemStyle} data-tip={item.text} key={styles.sidebarWidth + item.text + index}>
-          <span style={iconStyle} key={styles.sidebarWidth + index}>{item.icon}</span>
-          {!styles.sidebarCollapsed && item.text}
+        <div style={menuItemStyle} data-tip={item.text.props.children} key={styles.sidebarWidth + item.text + index}>
+          {(!styles.sidebarCollapsed && item.text) ||
+            <span style={iconStyle} key={styles.sidebarWidth + index}>{item.icon}</span>
+          }
         </div>
       ))}
       <ReactTooltip effect="float" />

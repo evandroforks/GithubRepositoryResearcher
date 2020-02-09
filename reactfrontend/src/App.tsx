@@ -81,13 +81,22 @@ class App extends React.Component<AppProps, AppState> {
       showFooterMenuText: windowWidth > 500,
       isTitleCollapsed: windowWidth < 350,
       showSidebar: windowWidth > 768,
-      sidebarWidth: windowWidth < 1100 ? 100 : 200,
+      sidebarWidth: windowWidth < 1100 ? 70 : 180,
       sidebarCollapsed: windowWidth < 1100
     };
 
+    const buttonStyle = {
+      marginLeft: 5,
+      marginRight: 5,
+    }
+
     const menuItems: Array<MenuItem> = [
-      { icon: `»`, text: <Button color="danger">Next Page</Button> },
-      { icon: `«`, text: <Button color="danger">Previous Page</Button> },
+      { icon: <button className="link">»</button>,
+        text: <Button color="danger" style={buttonStyle} className="btn-block">Next Page</Button>
+      },
+      { icon: <button className="link">«</button>,
+        text: <Button color="danger" style={buttonStyle} className="btn-block">Previous Page</Button>
+      },
     ]
 
     const menuItemsKey: string = createHashKeyFromMenuItems(menuItems)
@@ -101,11 +110,11 @@ class App extends React.Component<AppProps, AppState> {
         }}
         key={windowWidth}
       >
-        {styles.showSidebar ? (
-          <Sidebar menuItems={menuItems} styles={styles} key={menuItemsKey} />
-        ) : (
-            <TopBar styles={styles} key={"topbar" + windowWidth} />
-          )}
+
+        {(styles.showSidebar &&
+          <Sidebar menuItems={menuItems} styles={styles} key={menuItemsKey} />) ||
+          <TopBar styles={styles} key={"topbar" + windowWidth} />
+        }
 
         <Content styles={styles}
           errorMessage={this.state.errorMessage}

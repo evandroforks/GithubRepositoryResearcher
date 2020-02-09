@@ -43,6 +43,7 @@ export interface Styles {
   black: any,
   topBarHeight: number,
   footerMenuHeight: number,
+  isTitleCollapsed: boolean,
   showFooterMenuText: boolean,
   showSidebar: boolean,
   sidebarWidth: number,

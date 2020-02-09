@@ -78,6 +78,7 @@ class App extends React.Component<AppProps, AppState> {
       topBarHeight: 40,
       footerMenuHeight: 50,
       showFooterMenuText: windowWidth > 500,
+      isTitleCollapsed: windowWidth < 350,
       showSidebar: windowWidth > 768,
       sidebarWidth: windowWidth < 1100 ? 100 : 200,
       sidebarCollapsed: windowWidth < 1100

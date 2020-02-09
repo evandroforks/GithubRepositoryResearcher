@@ -20,7 +20,7 @@ const TopBar = ({ styles }: {styles: Styles}) => {
   return (
     <div style={topBarStyle as React.CSSProperties} key={styles.topBarHeight}>
       <span>{`😺️`}</span>
-      GitHub Repository Researcher
+        { styles.isTitleCollapsed ? "GH RRS" : "GitHub Repository Researcher" }
       <span>{`⚙️`}</span>
     </div>
   );

@@ -3,7 +3,7 @@ import * as forge from 'node-forge';
 export function createHashKeyFromMenuItems(menuItems: Array< any >) : string {
   let items: Array<string> = menuItems.map(
       (item: any) => {
-        return item.text
+        return item.text.props.children
       }
     )
   let md = forge.md.md5.create();

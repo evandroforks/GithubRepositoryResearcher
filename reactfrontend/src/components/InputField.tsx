@@ -8,7 +8,7 @@ interface InputFieldState {
   searchQuery: string;
 }
 
-export class InputFieldComponent extends React.Component<InputFieldProps, InputFieldState>
+export class InputField extends React.Component<InputFieldProps, InputFieldState>
 {
   constructor(props: InputFieldProps) {
     super(props);
@@ -29,9 +29,9 @@ export class InputFieldComponent extends React.Component<InputFieldProps, InputF
     return (
       <form onSubmit={this.handleSubmit}>
         <label>
-          <input type="text" 
+          <input type="text"
             style={contentStyle}
-            value={this.state.searchQuery} 
+            value={this.state.searchQuery}
             onChange={this.handleInputPathChange} />
         </label>
         <input type="submit" value="Start Searching" />
@@ -49,4 +49,4 @@ export class InputFieldComponent extends React.Component<InputFieldProps, InputF
   }
 }
 
-export default InputFieldComponent;
+export default InputField;

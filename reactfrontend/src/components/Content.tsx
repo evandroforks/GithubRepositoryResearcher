@@ -1,6 +1,6 @@
 import React from "react";
 import { Styles, RepositoryResults, Repository } from "./Utils";
-import InputFieldComponent from "./InputFieldComponent";
+import InputField from "./InputField";
 
 interface ContentsProps {
   styles: Styles,
@@ -36,7 +36,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
           <div dangerouslySetInnerHTML={{ __html: this.props.errorMessage }} />
         }
 
-        <InputFieldComponent sendSearchQuery={this.props.sendSearchQuery} />
+        <InputField sendSearchQuery={this.props.sendSearchQuery} />
 
         {(this.props.repositoryResults.repositoryCount > 0 &&
           <p>Total repositories found: {this.props.repositoryResults.repositoryCount}</p>) || <p>No repositories available to display.</p>

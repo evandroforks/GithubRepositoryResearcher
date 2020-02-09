@@ -39,7 +39,7 @@ export class InputField extends React.Component<InputFieldProps, InputFieldState
         </label>
         <input
           type="submit"
-          style={{ minWidth: "120px" }}
+          style={{ minWidth: "150px" }}
           value={this.props.isSearching ? "Searching..." : this.props.hasSendSearchQuery ? "Start New Search" : "Start Searching"}
           disabled={this.props.isSearching} /> { }
 

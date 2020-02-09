@@ -221,7 +221,7 @@ class App extends React.Component<AppProps, AppState> {
 
           repositories_response.then(
             (response: RepositoryResults) => {
-              console.log('Server response:', response);
+              // console.log('Server response:', response);
               console.log( response.rateLimit );
               this.lastItemId = response.lastItemId
               this.hasMorePages = response.hasMorePages

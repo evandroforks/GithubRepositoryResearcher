@@ -62,11 +62,11 @@ def main():
 
 def formatratelimit(resultdata):
     return (
-        f"User {resultdata['viewer']['login']}, "
-        f"rate limit {resultdata['rateLimit']['remaining']}, "
+        f"{resultdata['viewer']['login']}, "
+        f"limit {resultdata['rateLimit']['remaining']}, "
         f"cost {resultdata['rateLimit']['cost']}, "
-        f"remaining {resultdata['rateLimit']['remaining']}, "
-        f"reset {resultdata['rateLimit']['resetAt']}, "
+        f"{resultdata['rateLimit']['remaining']}, "
+        f"{resultdata['rateLimit']['resetAt']}, "
     )
 
 

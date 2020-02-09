@@ -143,7 +143,6 @@ This is a **`POST`** endpoint which accepts **`JSON`** on the following format:
 ```
 The result of this request is another **`JSON`**,
 within details about the given **`repositoryName`** from the requested **`repositoryUser`**.
-
 The resulting **`JSON`** has the following format:
 ```json
 {

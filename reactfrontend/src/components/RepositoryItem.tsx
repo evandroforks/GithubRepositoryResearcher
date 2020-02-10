@@ -1,6 +1,5 @@
 import React from "react";
 import { Repository, prettyPrintError, extendArray } from "./Utils";
-import { Button } from "reactstrap";
 
 interface RepositoryDetails {
   rateLimit: string,
@@ -65,11 +64,6 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
   }
 
   render() {
-    const buttonStyle = {
-      marginLeft: 5,
-      marginRight: 5,
-      minWidth: "150px",
-    }
     let isBookmarked: string = this.props.isBookmarked(this.props.repository.nameWithOwner) ? "Remove from Bookmarks" : "Add to Bookmarks"
 
     return (
@@ -82,13 +76,6 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           {this.props.index + this.props.pageOffSet + 1}. { }
           {this.props.repository.nameWithOwner.replace("/", " / ")} { }
           ({this.props.repository.stargazers.totalCount.toLocaleString()} stars)
-
-          <Button
-            color="info"
-            style={buttonStyle}
-            onClick={(args: any) => { return this.props.toogleBookmarks(this.props.repository.nameWithOwner) }}
-            key={isBookmarked}
-          >{isBookmarked}</Button>
         </h5>
 
         <p>{this.props.repository.description}</p>
@@ -123,6 +110,12 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           disabled={this.state.repositoryDetails == null}>
           {this.state.isShowingDetails ? "Hide details" : "Show Details"}
         </button>
+        <button
+            color="info"
+            style={{ minWidth: "120px" }}
+            onClick={(args: any) => { return this.props.toogleBookmarks(this.props.repository.nameWithOwner) }}
+            key={isBookmarked}
+          >{isBookmarked}</button>
       </div>
     );
   }

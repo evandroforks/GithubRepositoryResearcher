@@ -3,10 +3,14 @@ import TopBar from "./components/TopBar";
 import FooterMenu from "./components/FooterMenu";
 import Content from "./components/Content";
 import Sidebar from "./components/Sidebar";
+import Cookies from 'universal-cookie';
 
 import { Button } from 'reactstrap';
 import { Styles, MenuItem, RepositoryResults } from "./components/Utils";
 import { createHashKeyFromMenuItems, getEnvironmentVariable, prettyPrintError } from "./components/Utils";
+
+// https://stackoverflow.com/questions/39826992/how-can-i-set-a-cookie-in-react
+const COOKIES = new Cookies();
 
 interface AppProps {
 }
@@ -33,6 +37,10 @@ class App extends React.Component<AppProps, AppState> {
 
   constructor(props: AppProps) {
     super(props);
+    this.isBookmarked = this.isBookmarked.bind(this)
+    this.getAllBookmarks = this.getAllBookmarks.bind(this)
+    this.toogleBookmarks = this.toogleBookmarks.bind(this)
+    this.getCookieName = this.getCookieName.bind(this)
     this.setError = this.setError.bind(this)
     this.getBackEndUrl = this.getBackEndUrl.bind(this)
     this.sendSearchQuery = this.sendSearchQuery.bind(this)
@@ -44,7 +52,7 @@ class App extends React.Component<AppProps, AppState> {
     this.searchQuery = ""
     this.lastItemId = null
     this.oldItemId = null
-    this.itemsPerPage = 50
+    this.itemsPerPage = 10
     this.hasMorePages = false
     this.actualSearchPage = 0
     this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
@@ -102,24 +110,29 @@ class App extends React.Component<AppProps, AppState> {
     }
 
     const menuItems: Array<MenuItem> = [
-      { icon: <button className="link"
-          onClick={this.previousSearchPage}
-          disabled={!(this.actualSearchPage > 0) || this.state.isSearching}>«</button>,
+      { icon: <Button
+          color="danger"
+          style={buttonStyle}
+          className="btn-block"
+          disabled={!(this.actualSearchPage > 0) || this.state.isSearching}
+          onClick={this.previousSearchPage}>«</Button>,
         text: <Button
           color="danger"
           style={buttonStyle}
           className="btn-block"
           disabled={!(this.actualSearchPage > 0) || this.state.isSearching}
-          onClick={this.previousSearchPage}>Previous Page</Button>
+          onClick={this.previousSearchPage}>Previous Page</Button>,
         },
-        { icon: <button className="link"
-          onClick={this.nextSearchPage}
-          disabled={!this.hasMorePages || this.state.isSearching}>»</button>,
+        { icon: <Button color="danger"
+            style={buttonStyle}
+            className="btn-block"
+            disabled={!this.hasMorePages || this.state.isSearching}
+            onClick={this.nextSearchPage}>»</Button>,
         text: <Button color="danger"
           style={buttonStyle}
           className="btn-block"
           disabled={!this.hasMorePages || this.state.isSearching}
-          onClick={this.nextSearchPage}>Next Page</Button>
+          onClick={this.nextSearchPage}>Next Page</Button>,
       },
     ]
 
@@ -138,7 +151,13 @@ class App extends React.Component<AppProps, AppState> {
       >
 
         {(styles.showSidebar &&
-          <Sidebar menuItems={menuItems} styles={styles} key={menuItemsKey} />) ||
+          <Sidebar
+            menuItems={menuItems}
+            styles={styles}
+            allbookmarks={this.getAllBookmarks()}
+            COOKIES={COOKIES}
+            key={menuItemsKey}
+          />) ||
           <TopBar styles={styles} key={"topbar" + windowWidth} />
         }
 
@@ -152,6 +171,8 @@ class App extends React.Component<AppProps, AppState> {
           isSearching={this.state.isSearching}
           itemsPerPage={this.itemsPerPage}
           actualSearchPage={this.state.actualSearchPageDelayed}
+          isBookmarked={this.isBookmarked}
+          toogleBookmarks={this.toogleBookmarks}
           key={"contents" + windowWidth + this.actualSearchPage + this.state.actualSearchPageDelayed} />
 
         {!styles.showSidebar && (
@@ -159,6 +180,55 @@ class App extends React.Component<AppProps, AppState> {
         )}
       </div>
     );
+  }
+
+  getCookieName(username: string) : string {
+    return 'github_repository_researcher-' + username
+  }
+
+  isBookmarked(username: string) : boolean {
+    let usercoockies: string = COOKIES.get(this.getCookieName(username))
+    if(usercoockies === undefined) {
+      return false
+    }
+    return true
+  }
+
+  getAllBookmarks() {
+    let allbookmarks = COOKIES.get(this.getCookieName(""))
+    if(allbookmarks === undefined) {
+      allbookmarks = []
+    }
+    return allbookmarks
+  }
+
+  toogleBookmarks(username: string) {
+    if(this.isBookmarked(username)) {
+      let allbookmarks = COOKIES.get(this.getCookieName(""))
+
+      if(allbookmarks === undefined) {
+        allbookmarks = []
+      }
+
+      let cookiename: string = this.getCookieName(username)
+      allbookmarks = allbookmarks.filter((item: string) => item !== cookiename)
+
+      COOKIES.remove(cookiename);
+      COOKIES.set(this.getCookieName(""), allbookmarks);
+    }
+    else {
+      let allbookmarks = COOKIES.get(this.getCookieName(""))
+      if(allbookmarks === undefined) {
+        allbookmarks = []
+      }
+
+      let cookiename: string = this.getCookieName(username)
+      allbookmarks.push(cookiename)
+
+      COOKIES.set(cookiename, username.split("/")[1] + ', ' + username.split("/")[0]);
+      COOKIES.set(this.getCookieName(""), allbookmarks);
+    }
+    this.forceUpdate()
   }
 
   nextSearchPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {

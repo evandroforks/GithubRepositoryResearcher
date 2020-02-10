@@ -14,6 +14,8 @@ interface ContentsProps {
   isSearching: boolean,
   itemsPerPage: number,
   actualSearchPage: number,
+  isBookmarked: Function,
+  toogleBookmarks: Function,
 }
 
 interface ContentsState {
@@ -65,6 +67,8 @@ export class Content extends React.Component<ContentsProps, ContentsState>
               pageOffSet={this.props.itemsPerPage * this.props.actualSearchPage}
               getBackEndUrl={this.props.getBackEndUrl}
               index={index}
+              isBookmarked={this.props.isBookmarked}
+              toogleBookmarks={this.props.toogleBookmarks}
               key={index + repository.nameWithOwner + this.props.itemsPerPage * this.props.actualSearchPage}
             />
           );

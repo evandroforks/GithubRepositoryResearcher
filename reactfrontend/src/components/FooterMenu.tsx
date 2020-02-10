@@ -30,7 +30,7 @@ const FooterMenu = ({ menuItems, styles }: {menuItems: Array<MenuItem>, styles: 
             }}
           >
             {(styles.showFooterMenuText && item.text) ||
-              <span style={{ marginLeft: 5, fontSize: 20 }}>{item.icon}</span>
+              <span style={{ marginLeft: 5, fontSize: 16 }}>{item.icon}</span>
             }
           </div>
         );

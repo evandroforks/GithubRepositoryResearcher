@@ -33,12 +33,12 @@ function reactfrontend_tests() {
 }
 
 function pythonbackend_tests() {
-    printf "Running pythonbackend tests...\\n";
     testscase="${1}";
 
     # https://stackoverflow.com/questions/15971735/running-single-test-from-unittest-testcase-via-command-line
     if [[ -z ${testscase} ]];
     then
+        printf "Running pythonbackend tests...\\n";
         "${GITHUB_RESEARCHER_PYTHON_PATH}" "${SCRIPT_FOLDER_PATH}/pythonbackend/tests/run_all.py" || exit $?
 
     else

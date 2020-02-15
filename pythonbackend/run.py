@@ -18,8 +18,9 @@ from debug_tools.utilities import wrap_text
 log = getLogger( os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL' ), 'researcher' )
 
 # https://gist.github.com/gbaman/b3137e18c739e0cf98539bf4ec4366ad
-graphql_url = "https://api.github.com/graphql"
-headers = { "Authorization": f"Bearer {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )}" }
+GRAPHQL_URL = "https://api.github.com/graphql"
+REACT_APP_GITHUB_RESEARCHER_TOKEN = os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )
+GRAPHQL_HEADERS = { "Authorization": f"Bearer {REACT_APP_GITHUB_RESEARCHER_TOKEN}" }
 
 # https://stackoverflow.com/questions/15117416/capture-arbitrary-path-in-flask-route
 # https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
@@ -46,8 +47,12 @@ github_ratelimit_graphql = wrap_text( """
 """ )
 
 def main():
-    log( f"headers {str(headers)[:30]}..." )
+    log( f"headers {str(GRAPHQL_HEADERS)[:30]}..." )
     log( f"REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT' )}..." )
+
+    if len( REACT_APP_GITHUB_RESEARCHER_TOKEN ) < 20:
+        raise RuntimeError( f"The GitHub access token 'REACT_APP_GITHUB_RESEARCHER_TOKEN="
+            f"{REACT_APP_GITHUB_RESEARCHER_TOKEN}' was not defined" )
 
     graphqlresults = run_graphql_query( f"{{{github_ratelimit_graphql}}}" )
     log( formatratelimit( graphqlresults["data"] ) )
@@ -274,29 +279,53 @@ def detail_repository():
 # A simple function to use requests.post to make the API call. Note the json= section.
 # https://developer.github.com/v4/explorer/
 def run_graphql_query(graphqlquery, queryvariables={}):
-    request = requests.post( graphql_url, json={'query': graphqlquery, 'variables': queryvariables}, headers=headers )
+    request = requests.post( GRAPHQL_URL, json={'query': graphqlquery, 'variables': queryvariables}, headers=GRAPHQL_HEADERS )
 
     if request.status_code == 200:
         result = request.json()
 
         if "data" not in result or "errors" in result:
-            raise Exception( wrap_text( f"""
-                There were errors while processing the query!
-                {graphqlquery}
-                {queryvariables}
-                '{json.dumps( result, indent=2, sort_keys=True )}'
-            """ ) )
+            raise Exception(
+                f"There were errors while processing the query!\n"
+                f"graphqlquery\n"
+                f"{graphqlquery}\n"
+                f"\n"
+                f"queryvariables\n"
+                f"{queryvariables}\n\n"
+                f"'{json.dumps( result, indent=2, sort_keys=True )}'\n"
+            )
+
+    elif request.status_code == 401:
+        raise Exception( f"Invalid GitHub access token provided {str(GRAPHQL_HEADERS)[:30]}..." )
 
     else:
         raise Exception( wrap_text(
             f"""Query failed to run by returning code of {request.status_code}.
             queryvariables:
             {queryvariables}
+
             graphqlquery:
             {graphqlquery}
         """ ) )
 
     return result
+
+
+@catch_remote_exceptions
+@APP.route('/kill_server', endpoint='kill_server', methods=['GET'])
+def kill_server():
+    # Kill the parent flask process (last process to kill)
+    # https://stackoverflow.com/questions/13284858/how-to-share-the-global-app-object-in-flask
+    # https://stackoverflow.com/questions/34122949/working-outside-of-application-context-flask
+    # https://stackoverflow.com/questions/15562446/how-to-stop-flask-application-without-using-ctrl-c/17053522
+    with flask.current_app.app_context():
+        shutdown_function = flask.request.environ.get( 'werkzeug.server.shutdown' )
+
+        if shutdown_function is None:
+            raise RuntimeError( 'Not running with the Werkzeug Server' )
+        shutdown_function()
+
+    return flask.Response( status=200 )
 
 
 if __name__ == "__main__":

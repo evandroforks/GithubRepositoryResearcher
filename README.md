@@ -199,6 +199,8 @@ frontend servers.
 1. **`docker-compose up reactfrontend pythonbackend`**
     1. **`docker-compose up reactfrontend pythonbackend -d`** (to run in background)
     1. **`docker-compose stop`** (to stop background dockers)
+    1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
+       See the **`Development -> Installation`** steps for more information.
 
 ### Debugging Commands
 
@@ -239,6 +241,8 @@ including the tests service.
 1. **`docker-compose up --exit-code-from tests`** (automatically stop the containers when the tests are finished)
     1. https://stackoverflow.com/questions/38440876/stand-up-select-services-with-docker-compose
     1. https://www.ostechnix.com/explaining-docker-volumes-with-examples/
+    1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
+       See the **`Development -> Installation`** steps for more information.
 
 
 ___
@@ -267,15 +271,16 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
    just export these variables before running the project:
     ```shell
     #!/bin/bash
-    : ${GITHUB_RESEARCHER_PIP_PATH:="pip3"}; export GITHUB_RESEARCHER_PIP_PATH
-    : ${GITHUB_RESEARCHER_PYTHON_PATH:="python3"}; export GITHUB_RESEARCHER_PYTHON_PATH
+    # https://stackoverflow.com/questions/11686208/check-if-environment-variable-is-already-set
+    : "${GITHUB_RESEARCHER_PIP_PATH=pip3}"; export GITHUB_RESEARCHER_PIP_PATH
+    : "${GITHUB_RESEARCHER_PYTHON_PATH=python3}"; export GITHUB_RESEARCHER_PYTHON_PATH
 
-    : ${REACT_APP_GITHUB_RESEARCHER_TOKEN:=""}; export REACT_APP_GITHUB_RESEARCHER_TOKEN
-    : ${REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL:="127"}; export REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL
+    : "${REACT_APP_GITHUB_RESEARCHER_TOKEN=}"; export REACT_APP_GITHUB_RESEARCHER_TOKEN
+    : "${REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL=127}"; export REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL
 
-    : ${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP:="127.0.0.1"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP
-    : ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:="9000"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT
-    : ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:="3000"}; export REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT
+    : "${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP=127.0.0.1}"; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP
+    : "${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=9000}"; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT
+    : "${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT=3000}"; export REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT
     ```
     1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
        See [Creating a personal access token for the command

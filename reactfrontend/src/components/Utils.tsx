@@ -18,7 +18,6 @@ export function getEnvironmentVariable(variable_name: string, default_value: str
   if (value_get === undefined) {
     value_get = default_value;
   }
-  // console.log('process.env', variable_name, value_get)
   return value_get;
 }
 
@@ -64,8 +63,10 @@ export interface Repository{
 
 export interface RepositoryResults{
   rateLimit: string,
-  lastItemId: string | null,
-  hasMorePages: boolean,
+  endCursor: string | null,
+  startCursor: string | null,
+  hasNextPage: boolean,
+  hasPreviousPage: boolean,
   repositoryCount: number,
   repositories: Array<Repository>,
 }

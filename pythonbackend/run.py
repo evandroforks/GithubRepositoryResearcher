@@ -34,15 +34,16 @@ APP = flask.Flask(
 # https://stackoverflow.com/questions/43871637/no-access-control-allow-origin-header-is-present
 flask_cors.CORS( APP )
 
+DEFAULT_QUERY_ITEMS = 3
 github_ratelimit_graphql = wrap_text( """
     rateLimit {
-        limit
-        cost
-        remaining
-        resetAt
+      limit
+      cost
+      remaining
+      resetAt
     }
     viewer {
-        login
+      login
     }
 """ )
 
@@ -115,6 +116,36 @@ def validate_request_dictionary(keyword, dictionary, datatype):
                 f"Error: '{keyword}={container}' must be of type {datatype}!", status=400, mimetype='text/plain' ) )
 
 
+def set_query_cursors(queryvariables, search_data):
+    validate_request_dictionary( "startCursor", search_data, (str, type(None)) )
+    validate_request_dictionary( "endCursor", search_data, (str, type(None)) )
+    validate_request_dictionary( "itemsPerPage", search_data, int )
+
+    if search_data.get( "startCursor", None ) and search_data.get( "endCursor", None ):
+        raise InvalidRequest( flask.Response( wrap_text( f"""
+                Error: You cannot set both 'startCursor={search_data.get( 'startCursor', None )}'
+                and 'endCursor={search_data.get( 'endCursor', None )}' variables simultaneously!
+        """, single_lines=True ), status=400, mimetype='text/plain' ) )
+
+    if search_data.get( "startCursor", None ):
+        queryvariables["first"] = None
+        queryvariables["after"] = None
+        queryvariables["last"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["before"] = search_data.get( "startCursor" )
+
+    elif search_data.get( "endCursor", None ):
+        queryvariables["first"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["after"] = search_data.get( "endCursor" )
+        queryvariables["last"] = None
+        queryvariables["before"] = None
+
+    else:
+        queryvariables["first"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["after"] = None
+        queryvariables["last"] = None
+        queryvariables["before"] = None
+
+
 @catch_remote_exceptions
 @APP.route('/search_github', endpoint='search_github', methods=['POST'])
 def search_github():
@@ -123,24 +154,26 @@ def search_github():
     try:
         search_data = flask.request.json
         log( 4, f"search_data {search_data}" )
-
         validate_request_data( "searchQuery", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
-        validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
             "query": search_data["searchQuery"],
-            "items": search_data.get( "itemsPerPage", 3 ),
-            "lastItem": search_data.get( "lastItemId", None ),
         }
+        set_query_cursors( queryvariables, search_data )
 
         # https://github.community/t5/GitHub-API-Development-and/graphql-search-query-format/td-p/19238
         search_github_graphqlquery = wrap_text( """
-            query SearchRepositories($query: String!, $items: Int!, $lastItem: String) {
-              search(first: $items, query: $query, type: REPOSITORY, after: $lastItem) {
+            query SearchRepositories($query: String!, \
+                                        $first: Int, $after: String, $last: Int, $before: String) {
+
+              search(query: $query, type: REPOSITORY, \
+                        first: $first, after: $after, last: $last, before: $before) {
+
                 pageInfo {
-                  hasNextPage
+                  startCursor
                   endCursor
+                  hasNextPage
+                  hasPreviousPage
                 }
                 repositoryCount
                 nodes {
@@ -153,15 +186,17 @@ def search_github():
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( search_github_graphqlquery, queryvariables )
 
         results["repositoryCount"] = graphqlresults["data"]["search"]["repositoryCount"]
         results["repositories"] = graphqlresults["data"]["search"]["nodes"]
-        results["lastItemId"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
-        results["hasMorePages"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
+        results["endCursor"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
+        results["startCursor"] = graphqlresults["data"]["search"]["pageInfo"]["startCursor"]
+        results["hasNextPage"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
+        results["hasPreviousPage"] = graphqlresults["data"]["search"]["pageInfo"]["hasPreviousPage"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
@@ -182,40 +217,44 @@ def list_repositories():
     try:
         search_data = flask.request.json
         log( 4, f"search_data {search_data}" )
-
         validate_request_data( "repositoryUser", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
-        validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
             "user": search_data["repositoryUser"],
-            "lastItem": search_data.get( "lastItemId", None ),
-            "items": search_data.get( "itemsPerPage", 3 ),
         }
+        set_query_cursors( queryvariables, search_data )
 
         # https://stackoverflow.com/questions/39551325/github-graphql-orderby
         # https://stackoverflow.com/questions/48116781/github-api-v4-how-can-i-traverse-with-pagination-graphql
         list_repositories_graphqlquery = wrap_text( """
-            query ListRepositories($user: String!, $items: Int!, $lastItem: String) {
+            query ListRepositories($user: String!, \
+                                    $first: Int, $after: String, $last: Int, $before: String) {
+
               repositoryOwner(login: $user) {
-                repositories(first: $items, after: $lastItem, orderBy: {field: STARGAZERS, direction: DESC}) {
+                repositories(first: $first, after: $after, last: $last, before: $before, \
+                                orderBy: {field: STARGAZERS, direction: DESC}) {
+
                   pageInfo {
-                    hasNextPage
+                    startCursor
                     endCursor
+                    hasNextPage
+                    hasPreviousPage
                   }
                   nodes {
                     name
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( list_repositories_graphqlquery, queryvariables )
 
         results["repositories"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["nodes"]
-        results["lastItemId"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
-        results["hasMorePages"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+        results["endCursor"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
+        results["startCursor"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["startCursor"]
+        results["hasNextPage"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+        results["hasPreviousPage"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasPreviousPage"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
@@ -259,10 +298,11 @@ def detail_repository():
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( detail_repository_graphqlquery, queryvariables )
+
         results = graphqlresults["data"]["repository"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 

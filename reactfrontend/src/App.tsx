@@ -30,10 +30,11 @@ class App extends React.Component<AppProps, AppState> {
   private backEndPort: string;
   private backEndIp: string;
   private itemsPerPage: number;
-  private oldItemId: string | null;
-  private lastItemId: string | null;
-  private hasMorePages: boolean;
+  private endCursor: string | null;
+  private startCursor: string | null;
   private actualSearchPage: number;
+  private hasNextPage: boolean;
+  private hasPreviousPage: boolean;
 
   constructor(props: AppProps) {
     super(props);
@@ -45,15 +46,17 @@ class App extends React.Component<AppProps, AppState> {
     this.getBackEndUrl = this.getBackEndUrl.bind(this)
     this.sendSearchQuery = this.sendSearchQuery.bind(this)
     this.updateDimensions = this.updateDimensions.bind(this)
+    this.resetState = this.resetState.bind(this)
     this.nextSearchPage = this.nextSearchPage.bind(this)
     this.previousSearchPage = this.previousSearchPage.bind(this)
 
     this.hasSendSearchQuery = false
     this.searchQuery = ""
-    this.lastItemId = null
-    this.oldItemId = null
+    this.endCursor = null
+    this.startCursor = null
     this.itemsPerPage = 10
-    this.hasMorePages = false
+    this.hasNextPage = false
+    this.hasPreviousPage = false
     this.actualSearchPage = 0
     this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
     this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
@@ -64,7 +67,14 @@ class App extends React.Component<AppProps, AppState> {
       windowHeight: 0,
       errorMessage: "",
       isSearching: false,
-      repositoryResults: {rateLimit: "", lastItemId: null, hasMorePages: false, repositoryCount: 0, repositories: []}
+      repositoryResults: {rateLimit: "",
+        endCursor: null,
+        startCursor: null,
+        hasNextPage: false,
+        hasPreviousPage: false,
+        repositoryCount: 0,
+        repositories: [],
+      },
     };
   }
 
@@ -126,12 +136,12 @@ class App extends React.Component<AppProps, AppState> {
         { icon: <Button color="danger"
             style={buttonStyle}
             className="btn-block"
-            disabled={!this.hasMorePages || this.state.isSearching}
+            disabled={!this.hasNextPage || this.state.isSearching}
             onClick={this.nextSearchPage}>»</Button>,
         text: <Button color="danger"
           style={buttonStyle}
           className="btn-block"
-          disabled={!this.hasMorePages || this.state.isSearching}
+          disabled={!this.hasNextPage || this.state.isSearching}
           onClick={this.nextSearchPage}>Next Page</Button>,
       },
     ]
@@ -149,7 +159,6 @@ class App extends React.Component<AppProps, AppState> {
         }}
         key={windowWidth}
       >
-
         {(styles.showSidebar &&
           <Sidebar
             menuItems={menuItems}
@@ -231,52 +240,50 @@ class App extends React.Component<AppProps, AppState> {
     this.forceUpdate()
   }
 
-  nextSearchPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
-    if(this.hasMorePages) {
-      this.actualSearchPage += 1
-      this.oldItemId = this.lastItemId
+  resetState() {
+    this.hasNextPage = false
+    this.hasPreviousPage = false
+    this.endCursor = null
+    this.startCursor = null
+    this.actualSearchPage = 0
+  }
 
+  nextSearchPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
+    if(this.hasNextPage) {
+      this.startCursor = null
+      this.actualSearchPage += 1
       this.sendSearchQuery(this.searchQuery, false)
     }
   }
 
   previousSearchPage(event: React.MouseEvent<HTMLButtonElement, MouseEvent>) {
     if(this.actualSearchPage > 0) {
+      this.endCursor = null
       this.actualSearchPage -= 1
-
-      if(this.actualSearchPage === 0){
-        this.lastItemId = null
-        this.hasMorePages = false
-      }
-      else {
-        this.lastItemId = this.oldItemId
-      }
-
       this.sendSearchQuery(this.searchQuery, false)
     }
   }
 
-  sendSearchQuery(searchQuery: string, restart = true) {
-    // console.log("Sending searchQuery", searchQuery, "lastItemId", this.lastItemId)
+  sendSearchQuery(searchQuery: string, restart = true)
+  {
     if(restart && this.searchQuery === searchQuery) {
-      this.lastItemId = null
-      this.hasMorePages = false
+      this.resetState()
     }
 
     this.searchQuery = searchQuery
     this.setState({ isSearching: true })
 
-    // https://stackoverflow.com/questions/39565706/post-request-with-fetch-api
     fetch(
       this.getBackEndUrl() + "/search_github",
       {
         method: 'POST',
         body: JSON.stringify(
-          {
-            searchQuery: searchQuery,
-            lastItemId: this.lastItemId,
-            itemsPerPage: this.itemsPerPage,
-          }
+            {
+              searchQuery: this.searchQuery,
+              startCursor: this.startCursor,
+              endCursor: this.endCursor,
+              itemsPerPage: this.itemsPerPage,
+            }
           ),
           headers: {
             'Accept': 'application/json',
@@ -284,20 +291,17 @@ class App extends React.Component<AppProps, AppState> {
           },
       }).then(
         response => {
-          // console.log('Server response', response);
-
-          // https://stackoverflow.com/questions/51568437/return-body-text-from-fetch-api
           if (response.ok) {
             this.hasSendSearchQuery = true
-            var repositories_response = response.json()
-            // console.log('Server response OK:', repositories_response);
+            let repositories_response = response.json()
 
-          repositories_response.then(
-            (response: RepositoryResults) => {
-              // console.log('Server response:', response);
-              // console.log( response.rateLimit );
-              this.lastItemId = response.lastItemId
-              this.hasMorePages = response.hasMorePages
+            repositories_response.then(
+              (response: RepositoryResults) =>
+            {
+              this.endCursor = response.endCursor
+              this.startCursor = response.startCursor
+              this.hasNextPage = response.hasNextPage
+              this.hasPreviousPage = response.hasPreviousPage
 
               this.setState({
                 repositoryResults: response,
@@ -307,13 +311,10 @@ class App extends React.Component<AppProps, AppState> {
             }).catch(this.setError)
           }
           else {
-            // https://stackoverflow.com/questions/55833486/use-fetch-read-response-body-from-non-http-ok
             response.text().then(
               text => {
                 throw new Error('Could not get the server response after sending the request!\n'
-                  + response.statusText
-                  + '\n'
-                  + text);
+                  + response.statusText + '\n' + text);
             }).catch(this.setError)
           }
       }).catch(this.setError)
@@ -326,6 +327,7 @@ class App extends React.Component<AppProps, AppState> {
     message = message.split(" ").join("&nbsp;");
     message = message.split("\n").join("<br/>");
     this.setState({ errorMessage: message })
+    this.resetState()
   }
 }
 

@@ -94,11 +94,31 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
         self.assertEqual( 400, response.status_code )
 
+    def test_invalid_parameters_server_search_github_request(self):
+        response = requests.post(
+            "%s/search_github" % self.server_url,
+            data=json.dumps( {
+                "searchQuery": "language:javascript sort:stars",
+                "startCursor": "asdf",
+                "endCursor": "asdf",
+            } ),
+            headers={ 'Content-Type': 'application/json' },
+            timeout=10,
+        )
+
+        decoded_response = self.decoded_response( response.content )
+        log( 4, 'response\n%s', decoded_response )
+
+        self.assertRegex( decoded_response, r"Error: You cannot set both .* variables simultaneously" )
+        self.assertRegex( response.headers.get( "Content-Type" ), r'text/plain' )
+        self.assertEqual( 400, response.status_code )
+
     def test_valid_server_search_github_request(self):
         response = requests.post(
             "%s/search_github" % self.server_url,
             data=json.dumps( {
-                "searchQuery": "language:javascript sort:stars"
+                "searchQuery": "language:javascript sort:stars",
+                "itemsPerPage": 1,
             } ),
             headers={ 'Content-Type': 'application/json' },
             timeout=10,
@@ -112,10 +132,10 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
 
         json_response = json.loads( response.content )
         self.assertGreater( json_response["repositoryCount"], 10 )
-        self.assertGreater( len( json_response["repositories"] ), 2 )
+        self.assertEqual( len( json_response["repositories"] ), 1 )
 
-        self.assertIn( "hasMorePages", json_response )
-        self.assertGreater( len( json_response["lastItemId"] ), 2 )
+        self.assertIn( "hasNextPage", json_response )
+        self.assertGreater( len( json_response["endCursor"] ), 2 )
         self.assertGreater( len( json_response["rateLimit"] ), 20 )
 
     def test_empty_server_list_repositories_request(self):
@@ -150,11 +170,11 @@ class PythonBackendIntegrationTests(TimeSpentTestCase):
         self.assertEqual( 200, response.status_code )
 
         json_response = json.loads( response.content )
-        self.assertEqual( len( json_response ), 4 )
+        self.assertEqual( len( json_response ), 6 )
         self.assertGreater( len( json_response["repositories"] ), 2 )
 
-        self.assertIn( "hasMorePages", json_response )
-        self.assertGreater( len( json_response["lastItemId"] ), 2 )
+        self.assertIn( "hasNextPage", json_response )
+        self.assertGreater( len( json_response["endCursor"] ), 2 )
         self.assertGreater( len( json_response["rateLimit"] ), 20 )
 
     def test_empty_server_detail_repositories_request(self):

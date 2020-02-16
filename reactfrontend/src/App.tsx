@@ -266,7 +266,7 @@ class App extends React.Component<AppProps, AppState> {
 
   sendSearchQuery(searchQuery: string, restart = true)
   {
-    if(restart && this.searchQuery === searchQuery) {
+    if( ( restart && this.searchQuery === searchQuery ) || this.searchQuery !== searchQuery) {
       this.resetState()
     }
 

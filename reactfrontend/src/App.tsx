@@ -7,7 +7,7 @@ import Cookies from 'universal-cookie';
 
 import { Button } from 'reactstrap';
 import { Styles, MenuItem, RepositoryResults } from "./components/Utils";
-import { createHashKeyFromMenuItems, getEnvironmentVariable, prettyPrintError } from "./components/Utils";
+import { createHashKeyFromMenuItems, prettyPrintError } from "./components/Utils";
 
 // https://stackoverflow.com/questions/39826992/how-can-i-set-a-cookie-in-react
 const COOKIES = new Cookies();
@@ -58,8 +58,8 @@ class App extends React.Component<AppProps, AppState> {
     this.hasNextPage = false
     this.hasPreviousPage = false
     this.actualSearchPage = 0
-    this.backEndPort = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT", "9000");
-    this.backEndIp = getEnvironmentVariable("REACT_APP_GITHUB_RESEARCHER_BACKEND_IP", "127.0.0.1");
+    this.backEndPort = process.env.REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT || "9000"
+    this.backEndIp = process.env.REACT_APP_GITHUB_RESEARCHER_BACKEND_IP || "127.0.0.1"
 
     this.state = {
       actualSearchPageDelayed: 0,
@@ -79,7 +79,10 @@ class App extends React.Component<AppProps, AppState> {
   }
 
   getBackEndUrl() {
-    return `http://${this.backEndIp}:${this.backEndPort}`;
+    if(this.backEndPort == "0") {
+      return `${this.backEndIp}`
+    }
+    return `http://${this.backEndIp}:${this.backEndPort}`
   }
 
   componentDidMount() {

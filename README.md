@@ -22,9 +22,12 @@ This work was mostly based on the tutorials:
 1. https://github.com/sazzer/docker-test ([blog post](https://blog.pusher.com/full-stack-testing-docker-compose/))
 1. https://github.com/ryanjyost/react-responsive-tutorial ([blog post](https://codeburst.io/how-to-build-fully-responsive-react-apps-with-nothing-but-inline-styles-and-javascript-242c091b6ba1))
 
+The application was deployed to Heroku by using the Heroku command line tutorial available on [Heroku Docker Tutorial (for
+dummies)](https://gist.github.com/evandrocoan/b3b56fe580601ae593dc30e9468262e9).
+
 
 ___
-## Table of Contents
+## Table of contents
 
 - [Github Repository Researcher](#github-repository-researcher)
   * [Table of Contents](#table-of-contents)
@@ -209,17 +212,50 @@ frontend servers.
     1. For Debian 9:
         1. https://linuxize.com/post/how-to-install-and-use-docker-compose-on-debian-9/
 
-### Installation
+### Raw docker commands
 
-1. **`git clone https://github.com/evandrocoan/GithubRepositoryResearcher`**
-1. **`cd GithubRepositoryResearcher`**
-1. **`docker-compose up reactfrontend pythonbackend`**
-    1. **`docker-compose up reactfrontend pythonbackend -d`** (to run in background)
-    1. **`docker-compose stop`** (to stop background dockers)
-    1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
-       See the **`Development -> Installation`** steps for more information.
+#### Backend instance
 
-### Debugging Commands
+```
+docker build . -f Dockerfile-backend -t evandrocoan/githubpythonbackend
+docker run -it \
+        --env GITHUB_RESEARCHER_PIP_PATH \
+        --env GITHUB_RESEARCHER_PYTHON_PATH \
+        --env GITHUB_RESEARCHER_DEBUG_LEVEL \
+        --env REACT_APP_GITHUB_RESEARCHER_TOKEN \
+        --env "REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:=9000}" \
+        --publish "${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:=9000}:${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:=9000}" \
+        evandrocoan/githubpythonbackend
+```
+
+#### Frontend instance
+
+```
+docker build . \
+        --build-arg "REACT_APP_GITHUB_RESEARCHER_BACKEND_IP=${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP:=127.0.0.1}" \
+        --build-arg "REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:=9000}" \
+        --file Dockerfile-frontend \
+        --tag evandrocoan/githubreactfrontend
+docker run -it \
+        --env "REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT=${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:=3000}" \
+        --publish "${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:=3000}:${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:=3000}" \
+        evandrocoan/githubreactfrontend
+```
+
+#### Template image
+
+It was created a pre-built image for this project on:
+https://hub.docker.com/repository/docker/evandrocoan/ubuntu18nodejspython,
+using the following commands:
+1. **`docker build . --file Dockerfile-nodejs --tag evandrocoan/ubuntu18nodejspython`**
+1. **`docker run -it evandrocoan/ubuntu18nodejspython`**
+1. **`# nodejs --version`**
+1. **`# exit`**
+1. **`docker login docker.io`**
+1. **`docker push evandrocoan/ubuntu18nodejspython`**
+1. https://github.com/vishnubob/wait-for-it
+
+### Debugging commands
 
 1. To rebuild the docker container:
     1. **`docker rmi <image>`**
@@ -248,19 +284,25 @@ frontend servers.
     1. https://nickjanetakis.com/blog/docker-tip-3-chain-your-docker-run-instructions-to-shrink-your-images
     1. https://stackoverflow.com/questions/31222377/what-are-docker-image-layers
     1. https://stackoverflow.com/questions/40801772/what-is-the-difference-between-docker-compose-ports-vs-expose
+    1. https://stackoverflow.com/questions/49999920/docker-compose-heroku-hostmane-links-and-production-deployment
+    1. https://devhints.io/docker
+    1. https://stackoverflow.com/questions/37461868/difference-between-run-and-cmd-in-a-dockerfile
+    1. https://stackoverflow.com/questions/40454470/how-can-i-use-a-variable-inside-a-dockerfile-cmd
+    1. https://stackoverflow.com/questions/44848721/docker-compose-inside-docker-in-a-docker
 
-### Running Tests (Continuous Integration)
+### Running tests (Continuous Integration)
 
 Uses **`docker-compose`** to run all services,
 including the tests service.
 
-1. **`docker-compose build reactfrontend`** (build **`reactfrontend`** first because the **`tests`** service depends on it)
+1. **`git clone https://github.com/evandrocoan/GithubRepositoryResearcher`**
+1. **`cd GithubRepositoryResearcher`**
 1. **`docker-compose up --exit-code-from tests`** (automatically stop the containers when the tests are finished)
-    1. https://stackoverflow.com/questions/38440876/stand-up-select-services-with-docker-compose
-    1. https://www.ostechnix.com/explaining-docker-volumes-with-examples/
+    1. **`docker-compose up reactfrontend pythonbackend`**
+    1. **`docker-compose up reactfrontend pythonbackend -d`** (to run in background)
+    1. **`docker-compose stop`** (to stop background dockers)
     1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
        See the **`Development -> Installation`** steps for more information.
-
 
 ___
 ## Development
@@ -312,8 +354,10 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
     1. **`npm install`**
     1. **`cd ..`**
     1. **`bash run_frontend.sh`**
+        1. Run **`bash run_frontend.sh -h`** to learn more about command line options available.
+        1. https://github.com/facebook/create-react-app/issues/2353
 
-### Running Tests
+### Running tests
 
 1. First follow the **`Installation`** steps just above and
    put the backend and

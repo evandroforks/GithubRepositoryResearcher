@@ -13,14 +13,6 @@ export function createHashKeyFromMenuItems(menuItems: Array< any >) : string {
   return md.digest().toHex();
 }
 
-export function getEnvironmentVariable(variable_name: string, default_value: string) {
-  let value_get: any = process.env[variable_name];
-  if (value_get === undefined) {
-    value_get = default_value;
-  }
-  return value_get;
-}
-
 // https://stackoverflow.com/questions/57997595/how-to-extend-the-built-in-array-type-on-typescript
 export function extendArray(first: Array<any>, other: Array<any>) {
   other.forEach(function (element: any) { first.push(element) }, other);

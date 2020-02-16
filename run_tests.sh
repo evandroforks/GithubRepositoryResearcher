@@ -79,7 +79,7 @@ function parse_command_line() {
                 -h|--help)
                     printf "%s [options] [arguments]\\n" "${0}";
                     printf "\\n";
-                    printf "This is a small shellscrip utility to run this project unit tests.\\n";
+                    printf "This is a small shellscript utility to run this project unit tests.\\n";
                     printf "\\n";
                     printf "Arguments:\\n";
                     printf "    -p or --python to run the python backend tests.\\n";

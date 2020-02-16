@@ -1,0 +1,6 @@
+FROM docker/compose:debian-1.25.4
+
+COPY . /app
+WORKDIR /app
+
+CMD service docker start && docker-compose up reactfrontend pythonbackend

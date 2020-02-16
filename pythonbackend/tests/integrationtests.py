@@ -226,6 +226,8 @@ class PythonBackendStarupTests(TimeSpentTestCase):
 
     def test_empty_github_token(self):
         os.environ["REACT_APP_GITHUB_RESEARCHER_TOKEN"] = ""
+        del os.environ["REACT_APP_GITHUB_RESEARCHER_TOKEN"]
+
         os.environ["REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT"] = self.server_port
         process = run_process_nonblocking( f"bash {PROJECT_DIRECTORY}/run_backend.sh" )
 

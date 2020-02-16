@@ -21,6 +21,13 @@ fi
 : ${REACT_APP_GITHUB_RESEARCHER_TOKEN:=""}; export REACT_APP_GITHUB_RESEARCHER_TOKEN;
 : ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:="9000"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT;
 
+printf "'GITHUB_RESEARCHER_PIP_PATH=%s'\\n" "${GITHUB_RESEARCHER_PIP_PATH}";
+printf "'GITHUB_RESEARCHER_PYTHON_PATH=%s'\\n" "${GITHUB_RESEARCHER_PYTHON_PATH}";
+printf "'GITHUB_RESEARCHER_DEBUG_LEVEL=%s'\\n" "${GITHUB_RESEARCHER_DEBUG_LEVEL}";
+
+printf "Please, do not be insane to try to print the 'REACT_APP_GITHUB_RESEARCHER_TOKEN'!\\n";
+printf "'REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=%s'\\n" "${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT}";
+
 
 # https://stackoverflow.com/questions/23513045/how-to-check-if-a-process-is-running-inside-docker-container
 if [[ -f /.dockerenv ]];

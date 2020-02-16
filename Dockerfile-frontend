@@ -1,8 +1,5 @@
 FROM evandrocoan/ubuntu18nodejspython:latest
 
-# https://docs.docker.com/engine/reference/builder/
-EXPOSE ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT}
-
 COPY . /app
 WORKDIR /app/reactfrontend
 

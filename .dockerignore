@@ -1,6 +1,9 @@
 # https://stackoverflow.com/questions/46375287/how-to-make-docker-compose-builds-faster
+**/.git
 **/node_modules
+
 *.sublime-workspace
+
 .env
 .env.local
 .env.development.local

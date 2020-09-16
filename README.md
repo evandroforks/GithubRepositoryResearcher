@@ -210,6 +210,11 @@ frontend servers.
     1. **`docker-compose build reactfrontend pythonbackend`**
     1. **`docker-compose up --force-recreate --build reactfrontend pythonbackend`**
     1. **`docker build . -f Dockerfile-nodejs -t evandrocoan/ubuntu18nodejspython`**
+    1. To clear all docker images (to free space):
+       1. **`docker container prune`**
+       1. **`docker system prune --volumes`**
+       1. **`docker rm -vf $(docker ps -a -q)`**
+       1. **`docker image prune --all`** By default Docker will not remove named images, even if they are unused. This command will remove unused images: https://stackoverflow.com/questions/46672001/is-it-safe-to-clean-docker-overlay2
 1. **`docker-compose ps`** (to list running containers)
 1. **`docker-compose --verbose up`**
 1. **`docker-compose run --entrypoint /bin/bash <container>`**

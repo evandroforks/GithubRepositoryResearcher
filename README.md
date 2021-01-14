@@ -223,7 +223,7 @@ frontend servers.
 1. Working with images:
     1. **`docker image ls`** (to list containers images)
     1. **`docker ps -n10 -s`** (to list exited containers)
-    1. **`docker containers ls`** (to list running containers)
+    1. **`docker container ls`** (to list running containers)
 1. Open an image and run a iterative shell:
     1. **`docker imagens`** (to list available images/containers)
     1. **`docker run -it githubrepositoryresearcher_tests /bin/bash`**

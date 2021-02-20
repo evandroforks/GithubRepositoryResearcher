@@ -14,12 +14,12 @@ fi
 
 # Set default values for undefined environment variables
 # https://stackoverflow.com/questions/11686208/check-if-environment-variable-is-already-set
-: ${GITHUB_RESEARCHER_PIP_PATH="pip3"}; export GITHUB_RESEARCHER_PIP_PATH;
-: ${GITHUB_RESEARCHER_PYTHON_PATH="python3"}; export GITHUB_RESEARCHER_PYTHON_PATH;
-: ${GITHUB_RESEARCHER_DEBUG_LEVEL="127"}; export GITHUB_RESEARCHER_DEBUG_LEVEL;
+: ${GITHUB_RESEARCHER_PIP_PATH:="pip3"}; export GITHUB_RESEARCHER_PIP_PATH;
+: ${GITHUB_RESEARCHER_PYTHON_PATH:="python3"}; export GITHUB_RESEARCHER_PYTHON_PATH;
+: ${GITHUB_RESEARCHER_DEBUG_LEVEL:="127"}; export GITHUB_RESEARCHER_DEBUG_LEVEL;
 
-: ${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP="127.0.0.1"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP;
-: ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT="9000"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT;
+: ${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP:="127.0.0.1"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP;
+: ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:="9000"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT;
 
 
 function reactfrontend_tests() {
@@ -33,12 +33,12 @@ function reactfrontend_tests() {
 }
 
 function pythonbackend_tests() {
-    printf "Running pythonbackend tests...\\n";
     testscase="${1}";
 
     # https://stackoverflow.com/questions/15971735/running-single-test-from-unittest-testcase-via-command-line
     if [[ -z ${testscase} ]];
     then
+        printf "Running pythonbackend tests...\\n";
         "${GITHUB_RESEARCHER_PYTHON_PATH}" "${SCRIPT_FOLDER_PATH}/pythonbackend/tests/run_all.py" || exit $?
 
     else

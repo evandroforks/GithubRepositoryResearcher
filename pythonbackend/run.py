@@ -18,8 +18,9 @@ from debug_tools.utilities import wrap_text
 log = getLogger( os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL' ), 'researcher' )
 
 # https://gist.github.com/gbaman/b3137e18c739e0cf98539bf4ec4366ad
-graphql_url = "https://api.github.com/graphql"
-headers = { "Authorization": f"Bearer {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )}" }
+GRAPHQL_URL = "https://api.github.com/graphql"
+REACT_APP_GITHUB_RESEARCHER_TOKEN = os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_TOKEN' )
+GRAPHQL_HEADERS = { "Authorization": f"Bearer {REACT_APP_GITHUB_RESEARCHER_TOKEN}" }
 
 # https://stackoverflow.com/questions/15117416/capture-arbitrary-path-in-flask-route
 # https://stackoverflow.com/questions/44209978/serving-a-front-end-created-with-create-react-app-with-flask
@@ -33,21 +34,26 @@ APP = flask.Flask(
 # https://stackoverflow.com/questions/43871637/no-access-control-allow-origin-header-is-present
 flask_cors.CORS( APP )
 
+DEFAULT_QUERY_ITEMS = 3
 github_ratelimit_graphql = wrap_text( """
     rateLimit {
-        limit
-        cost
-        remaining
-        resetAt
+      limit
+      cost
+      remaining
+      resetAt
     }
     viewer {
-        login
+      login
     }
 """ )
 
 def main():
-    log( f"headers {str(headers)[:30]}..." )
+    log( f"headers {str(GRAPHQL_HEADERS)[:30]}..." )
     log( f"REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT {os.environ.get( 'REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT' )}..." )
+
+    if len( REACT_APP_GITHUB_RESEARCHER_TOKEN ) < 20:
+        raise RuntimeError( f"The GitHub access token 'REACT_APP_GITHUB_RESEARCHER_TOKEN="
+            f"{REACT_APP_GITHUB_RESEARCHER_TOKEN}' was not defined" )
 
     graphqlresults = run_graphql_query( f"{{{github_ratelimit_graphql}}}" )
     log( formatratelimit( graphqlresults["data"] ) )
@@ -110,6 +116,36 @@ def validate_request_dictionary(keyword, dictionary, datatype):
                 f"Error: '{keyword}={container}' must be of type {datatype}!", status=400, mimetype='text/plain' ) )
 
 
+def set_query_cursors(queryvariables, search_data):
+    validate_request_dictionary( "startCursor", search_data, (str, type(None)) )
+    validate_request_dictionary( "endCursor", search_data, (str, type(None)) )
+    validate_request_dictionary( "itemsPerPage", search_data, int )
+
+    if search_data.get( "startCursor", None ) and search_data.get( "endCursor", None ):
+        raise InvalidRequest( flask.Response( wrap_text( f"""
+                Error: You cannot set both 'startCursor={search_data.get( 'startCursor', None )}'
+                and 'endCursor={search_data.get( 'endCursor', None )}' variables simultaneously!
+        """, single_lines=True ), status=400, mimetype='text/plain' ) )
+
+    if search_data.get( "startCursor", None ):
+        queryvariables["first"] = None
+        queryvariables["after"] = None
+        queryvariables["last"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["before"] = search_data.get( "startCursor" )
+
+    elif search_data.get( "endCursor", None ):
+        queryvariables["first"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["after"] = search_data.get( "endCursor" )
+        queryvariables["last"] = None
+        queryvariables["before"] = None
+
+    else:
+        queryvariables["first"] = search_data.get( "itemsPerPage", DEFAULT_QUERY_ITEMS )
+        queryvariables["after"] = None
+        queryvariables["last"] = None
+        queryvariables["before"] = None
+
+
 @catch_remote_exceptions
 @APP.route('/search_github', endpoint='search_github', methods=['POST'])
 def search_github():
@@ -118,24 +154,26 @@ def search_github():
     try:
         search_data = flask.request.json
         log( 4, f"search_data {search_data}" )
-
         validate_request_data( "searchQuery", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
-        validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
             "query": search_data["searchQuery"],
-            "items": search_data.get( "itemsPerPage", 3 ),
-            "lastItem": search_data.get( "lastItemId", None ),
         }
+        set_query_cursors( queryvariables, search_data )
 
         # https://github.community/t5/GitHub-API-Development-and/graphql-search-query-format/td-p/19238
         search_github_graphqlquery = wrap_text( """
-            query SearchRepositories($query: String!, $items: Int!, $lastItem: String) {
-              search(first: $items, query: $query, type: REPOSITORY, after: $lastItem) {
+            query SearchRepositories($query: String!, \
+                                        $first: Int, $after: String, $last: Int, $before: String) {
+
+              search(query: $query, type: REPOSITORY, \
+                        first: $first, after: $after, last: $last, before: $before) {
+
                 pageInfo {
-                  hasNextPage
+                  startCursor
                   endCursor
+                  hasNextPage
+                  hasPreviousPage
                 }
                 repositoryCount
                 nodes {
@@ -148,15 +186,17 @@ def search_github():
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( search_github_graphqlquery, queryvariables )
 
         results["repositoryCount"] = graphqlresults["data"]["search"]["repositoryCount"]
         results["repositories"] = graphqlresults["data"]["search"]["nodes"]
-        results["lastItemId"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
-        results["hasMorePages"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
+        results["endCursor"] = graphqlresults["data"]["search"]["pageInfo"]["endCursor"]
+        results["startCursor"] = graphqlresults["data"]["search"]["pageInfo"]["startCursor"]
+        results["hasNextPage"] = graphqlresults["data"]["search"]["pageInfo"]["hasNextPage"]
+        results["hasPreviousPage"] = graphqlresults["data"]["search"]["pageInfo"]["hasPreviousPage"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
@@ -177,40 +217,44 @@ def list_repositories():
     try:
         search_data = flask.request.json
         log( 4, f"search_data {search_data}" )
-
         validate_request_data( "repositoryUser", search_data, str )
-        validate_request_dictionary( "lastItemId", search_data, (str, type(None)) )
-        validate_request_dictionary( "itemsPerPage", search_data, int )
 
         queryvariables = {
             "user": search_data["repositoryUser"],
-            "lastItem": search_data.get( "lastItemId", None ),
-            "items": search_data.get( "itemsPerPage", 3 ),
         }
+        set_query_cursors( queryvariables, search_data )
 
         # https://stackoverflow.com/questions/39551325/github-graphql-orderby
         # https://stackoverflow.com/questions/48116781/github-api-v4-how-can-i-traverse-with-pagination-graphql
         list_repositories_graphqlquery = wrap_text( """
-            query ListRepositories($user: String!, $items: Int!, $lastItem: String) {
+            query ListRepositories($user: String!, \
+                                    $first: Int, $after: String, $last: Int, $before: String) {
+
               repositoryOwner(login: $user) {
-                repositories(first: $items, after: $lastItem, orderBy: {field: STARGAZERS, direction: DESC}) {
+                repositories(first: $first, after: $after, last: $last, before: $before, \
+                                orderBy: {field: STARGAZERS, direction: DESC}) {
+
                   pageInfo {
-                    hasNextPage
+                    startCursor
                     endCursor
+                    hasNextPage
+                    hasPreviousPage
                   }
                   nodes {
                     name
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( list_repositories_graphqlquery, queryvariables )
 
         results["repositories"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["nodes"]
-        results["lastItemId"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
-        results["hasMorePages"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+        results["endCursor"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["endCursor"]
+        results["startCursor"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["startCursor"]
+        results["hasNextPage"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasNextPage"]
+        results["hasPreviousPage"] = graphqlresults["data"]["repositoryOwner"]["repositories"]["pageInfo"]["hasPreviousPage"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
     except InvalidRequest as error:
@@ -254,10 +298,11 @@ def detail_repository():
                   }
                 }
               }
-              %s
+            %s
             }
-        """ ) % github_ratelimit_graphql
+        """ ) % wrap_text( github_ratelimit_graphql, indent="  " )
         graphqlresults = run_graphql_query( detail_repository_graphqlquery, queryvariables )
+
         results = graphqlresults["data"]["repository"]
         results["rateLimit"] = formatratelimit( graphqlresults["data"] )
 
@@ -274,29 +319,53 @@ def detail_repository():
 # A simple function to use requests.post to make the API call. Note the json= section.
 # https://developer.github.com/v4/explorer/
 def run_graphql_query(graphqlquery, queryvariables={}):
-    request = requests.post( graphql_url, json={'query': graphqlquery, 'variables': queryvariables}, headers=headers )
+    request = requests.post( GRAPHQL_URL, json={'query': graphqlquery, 'variables': queryvariables}, headers=GRAPHQL_HEADERS )
 
     if request.status_code == 200:
         result = request.json()
 
         if "data" not in result or "errors" in result:
-            raise Exception( wrap_text( f"""
-                There were errors while processing the query!
-                {graphqlquery}
-                {queryvariables}
-                '{json.dumps( result, indent=2, sort_keys=True )}'
-            """ ) )
+            raise Exception(
+                f"There were errors while processing the query!\n"
+                f"graphqlquery\n"
+                f"{graphqlquery}\n"
+                f"\n"
+                f"queryvariables\n"
+                f"{queryvariables}\n\n"
+                f"'{json.dumps( result, indent=2, sort_keys=True )}'\n"
+            )
+
+    elif request.status_code == 401:
+        raise Exception( f"Invalid GitHub access token provided {str(GRAPHQL_HEADERS)[:30]}..." )
 
     else:
         raise Exception( wrap_text(
             f"""Query failed to run by returning code of {request.status_code}.
             queryvariables:
             {queryvariables}
+
             graphqlquery:
             {graphqlquery}
         """ ) )
 
     return result
+
+
+@catch_remote_exceptions
+@APP.route('/kill_server', endpoint='kill_server', methods=['GET'])
+def kill_server():
+    # Kill the parent flask process (last process to kill)
+    # https://stackoverflow.com/questions/13284858/how-to-share-the-global-app-object-in-flask
+    # https://stackoverflow.com/questions/34122949/working-outside-of-application-context-flask
+    # https://stackoverflow.com/questions/15562446/how-to-stop-flask-application-without-using-ctrl-c/17053522
+    with flask.current_app.app_context():
+        shutdown_function = flask.request.environ.get( 'werkzeug.server.shutdown' )
+
+        if shutdown_function is None:
+            raise RuntimeError( 'Not running with the Werkzeug Server' )
+        shutdown_function()
+
+    return flask.Response( status=200 )
 
 
 if __name__ == "__main__":

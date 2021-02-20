@@ -50,7 +50,7 @@ export class Content extends React.Component<ContentsProps, ContentsState>
           isSearching={this.props.isSearching}
           hasSendSearchQuery={this.props.hasSendSearchQuery}/>
 
-        <p>
+        <p key={this.props.repositoryResults.repositoryCount}>
           {(this.props.repositoryResults.repositoryCount > 0 &&
             <span>Total repositories found: {this.props.repositoryResults.repositoryCount.toLocaleString()}</span>)
           }

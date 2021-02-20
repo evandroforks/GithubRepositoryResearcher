@@ -62,21 +62,27 @@ This is a **`POST`** endpoint which accepts **`JSON`** on the following format:
 ```json
 {
     "searchQuery": "term to search on github",
-    "lastItemId": "[optional field, defaults to null]",
-    "itemsPerPage": 0
+    "startCursor": "[optional field, defaults to null]",
+    "endCursor": "[optional field, defaults to null]",
+    "itemsPerPage": 10
 }
 ```
-1. **`lastItemId`** is an item identification to indicate the last item already fetched.
+1. **`searchQuery`** You can see how to formulate repository query strings at [Searching for
+   repositories](https://help.github.com/en/github/searching-for-information-on-github/searching-for-repositories).
+1. **`startCursor`** is an item identification to indicate the first item to be fetched when moving backwards.
+1. **`endCursor`** is an item identification to indicate the last item to be fetched when moving forwards.
 1. **`itemsPerPage`** [optional field, defaults to 3] is the maximum items count to return by a request.
 
 The result of this request is another **`JSON`**,
-within a list of repositories matching the **`searchQuery`** up to **`itemsPerPage`** results for the given **`lastItemId`**.
+within a list of repositories matching the **`searchQuery`** up to **`itemsPerPage`** results for the given **`endCursor`**.
 The resulting **`JSON`** has the following format:
 ```json
 {
   "rateLimit": "User evandrocoan, rate limit 4975, cost 1, remaining 4975, ..., ",
-  "hasMorePages":true,
-  "lastItemId":"Y3Vyc29yOnYyOpIJzgKrPxE=",
+  "hasNextPage":true,
+  "hasPreviousPage":false,
+  "startCursor":"Y3Vyc29yOjQ=",
+  "endCursor":"Y3Vyc29yOnYyOpIJzgKrPxE=",
   "repositoryCount": 9280591,
   "repositories": [
     {
@@ -89,9 +95,11 @@ The resulting **`JSON`** has the following format:
   ]
 }
 ```
-1. **`hasMorePages`** a boolean value determining whether there are new pages to show.
+1. **`rateLimit`** a string with details about the how many requests can be made to the backend server.
+1. **`hasNextPage`** a boolean value determining whether there are new pages to show.
+1. **`hasPreviousPage`** a boolean value determining whether there are old new pages to show.
 1. **`repositoryCount`** is the total number of repositories found on the search.
-1. **`repositories`** are all repositories found from the requested **`lastItemId`** up to the given the **`itemsPerPage`** on the initial
+1. **`repositories`** are all repositories found from the requested **`endCursor`** up to the given the **`itemsPerPage`** on the initial
    **`POST`** request.
 
 ### **`/list_repositories`**
@@ -99,22 +107,27 @@ The resulting **`JSON`** has the following format:
 This is a **`POST`** endpoint which accepts **`JSON`** on the following format:
 ```json
 {
-    "repositoryUser": "user name to fetch more details from",
-    "lastItemId": "[optional field, defaults to null]",
-    "itemsPerPage": 0
+    "repositoryUser": "evandrocoan",
+    "startCursor": "[optional field, defaults to null]",
+    "endCursor": "[optional field, defaults to null]",
+    "itemsPerPage": 10
 }
 ```
-1. **`lastItemId`** The same as **`/search_github -> lastItemId`**.
+1. **`repositoryUser`** User name to fetch more details from.
+1. **`startCursor`** The same as **`/search_github -> startCursor`**.
+1. **`endCursor`** The same as **`/search_github -> endCursor`**.
 1. **`itemsPerPage`** The same as **`/search_github -> itemsPerPage`**.
 
 The result of this request is another **`JSON`**,
-within a list of repositories matching the **`repositoryUser`** up to **`itemsPerPage`** results for the given **`lastItemId`**.
+within a list of repositories matching the **`repositoryUser`** up to **`itemsPerPage`** results for the given **`endCursor`**.
 The resulting **`JSON`** has the following format:
 ```json
 {
   "rateLimit": "User evandrocoan, rate limit 4975, cost 1, remaining 4975, ..., ",
-  "hasMorePages":true,
-  "lastItemId":"Y3Vyc29yOnYyOpIJzgKrPxE=",
+  "hasNextPage":true,
+  "hasPreviousPage":true,
+  "startCursor":"Y3Vyc29yOjQ=",
+  "endCursor":"Y3Vyc29yOnYyOpIJzgKrPxE=",
   "repositories":[
     {
       "name":"ITE"
@@ -128,8 +141,11 @@ The resulting **`JSON`** has the following format:
   ]
 }
 ```
-1. **`hasMorePages`** The same as **`/search_github -> hasMorePages`**.
-1. **`lastItemId`** The same as **`/search_github -> lastItemId`**.
+1. **`rateLimit`** The same as **`/search_github -> rateLimit`**.
+1. **`hasNextPage`** The same as **`/search_github -> hasNextPage`**.
+1. **`hasPreviousPage`** The same as **`/search_github -> hasPreviousPage`**.
+1. **`startCursor`** The same as **`/search_github -> startCursor`**.
+1. **`endCursor`** The same as **`/search_github -> endCursor`**.
 1. **`repositories`** The same as **`/search_github -> repositories`**,
    except that here are only included the repository names.
 
@@ -161,6 +177,7 @@ The resulting **`JSON`** has the following format:
   }
 }
 ```
+1. **`rateLimit`** The same as **`/search_github -> rateLimit`**.
 1. **`createdAt`** The date of creation of the repository.
 1. **`issues.totalCount`** the total of open issues on the repository.
 1. **`languages.nodes.name`** the main language of the project.
@@ -199,6 +216,8 @@ frontend servers.
 1. **`docker-compose up reactfrontend pythonbackend`**
     1. **`docker-compose up reactfrontend pythonbackend -d`** (to run in background)
     1. **`docker-compose stop`** (to stop background dockers)
+    1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
+       See the **`Development -> Installation`** steps for more information.
 
 ### Debugging Commands
 
@@ -244,6 +263,8 @@ including the tests service.
 1. **`docker-compose up --exit-code-from tests`** (automatically stop the containers when the tests are finished)
     1. https://stackoverflow.com/questions/38440876/stand-up-select-services-with-docker-compose
     1. https://www.ostechnix.com/explaining-docker-volumes-with-examples/
+    1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
+       See the **`Development -> Installation`** steps for more information.
 
 
 ___
@@ -272,15 +293,16 @@ Nodejs frontend (**`run_frontend.sh`**) servers on different terminals.
    just export these variables before running the project:
     ```shell
     #!/bin/bash
-    : ${GITHUB_RESEARCHER_PIP_PATH:="pip3"}; export GITHUB_RESEARCHER_PIP_PATH
-    : ${GITHUB_RESEARCHER_PYTHON_PATH:="python3"}; export GITHUB_RESEARCHER_PYTHON_PATH
+    # https://stackoverflow.com/questions/11686208/check-if-environment-variable-is-already-set
+    : "${GITHUB_RESEARCHER_PIP_PATH:=pip3}"; export GITHUB_RESEARCHER_PIP_PATH
+    : "${GITHUB_RESEARCHER_PYTHON_PATH:=python3}"; export GITHUB_RESEARCHER_PYTHON_PATH
 
-    : ${REACT_APP_GITHUB_RESEARCHER_TOKEN:=""}; export REACT_APP_GITHUB_RESEARCHER_TOKEN
-    : ${REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL:="127"}; export REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL
+    : "${REACT_APP_GITHUB_RESEARCHER_TOKEN:=}"; export REACT_APP_GITHUB_RESEARCHER_TOKEN
+    : "${REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL:=127}"; export REACT_APP_GITHUB_RESEARCHER_DEBUG_LEVEL
 
-    : ${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP:="127.0.0.1"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP
-    : ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:="9000"}; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT
-    : ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:="3000"}; export REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT
+    : "${REACT_APP_GITHUB_RESEARCHER_BACKEND_IP:=127.0.0.1}"; export REACT_APP_GITHUB_RESEARCHER_BACKEND_IP
+    : "${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:=9000}"; export REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT
+    : "${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:=3000}"; export REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT
     ```
     1. Do not forget to fill out the **`REACT_APP_GITHUB_RESEARCHER_TOKEN`** variable.
        See [Creating a personal access token for the command

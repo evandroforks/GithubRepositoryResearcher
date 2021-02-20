@@ -6,8 +6,6 @@ services:
       dockerfile: ./Dockerfile-frontend
     ports:
       - ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000}:${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000}
-    expose:
-      - ${REACT_APP_GITHUB_RESEARCHER_FRONTEND_PORT:-3000} # redundant when using also using ports!
     environment:
       - REACT_APP_GITHUB_RESEARCHER_BACKEND_IP=pythonbackend
       - REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT=${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
@@ -19,8 +17,6 @@ services:
       dockerfile: ./Dockerfile-backend
     ports:
       - ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}:${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000}
-    expose:
-      - ${REACT_APP_GITHUB_RESEARCHER_BACKEND_PORT:-9000} # redundant when using also using ports!
     environment:
       - GITHUB_RESEARCHER_PIP_PATH
       - GITHUB_RESEARCHER_PYTHON_PATH

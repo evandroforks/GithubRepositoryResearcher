@@ -1,5 +1,13 @@
 # https://stackoverflow.com/questions/46375287/how-to-make-docker-compose-builds-faster
+**/.git
 **/node_modules
+
 *.sublime-workspace
-*env.sh
-*env.bat
+
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+env.sh
+env.bat

@@ -12,8 +12,8 @@ interface RepositoryDetails {
 
 interface UserRepository {
   rateLimit: string,
-  hasMorePages: false,
-  lastItemId: string,
+  hasNextPage: false,
+  endCursor: string,
   repositories: Array<{
     name: string,
   }>,
@@ -31,8 +31,8 @@ interface RepositoryItemProps {
 
 interface RepositoryItemState {
   itemPage: number,
-  hasMorePages: boolean,
-  lastItemId: string | null,
+  hasNextPage: boolean,
+  endCursor: string | null,
   errorMessage: string,
   userRepositories: Array<{ name: string }>,
   repositoryDetails: RepositoryDetails | null,
@@ -54,8 +54,8 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
       itemPage: 0,
       isShowingDetails: false,
       errorMessage: "",
-      hasMorePages: true,
-      lastItemId: null,
+      hasNextPage: true,
+      endCursor: null,
       userRepositories: [],
       repositoryDetails: null,
       isLoadingDetails: false,
@@ -101,7 +101,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
         <button type="button"
           onClick={this.loadMoreDetails}
           style={{ minWidth: "120px" }}
-          disabled={!this.state.hasMorePages}>
+          disabled={!this.state.hasNextPage}>
           {this.state.isLoadingDetails || this.state.isLoadingRepositories ? "Loading more..." : "More details..."}
         </button>
         <button type="button"
@@ -130,7 +130,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
       this.loadRepositoryDetails()
     }
 
-    if(this.state.hasMorePages) {
+    if(this.state.hasNextPage) {
       this.setState({ isLoadingRepositories: true })
       this.loadUserRepositories()
     }
@@ -138,9 +138,8 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
     this.setState( { isShowingDetails: true } )
   }
 
-  loadRepositoryDetails() {
-    // console.log("Sending loadMoreDetails for", this.props.repository.nameWithOwner)
-
+  loadRepositoryDetails()
+  {
     fetch(
       this.props.getBackEndUrl() + "/detail_repository",
       {
@@ -156,18 +155,14 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           'Content-Type': 'application/json',
         },
       }).then(
-        response => {
-          // console.log('Server response', response);
-
+        response =>
+        {
           if (response.ok) {
             var repositories_response = response.json()
-            // console.log( 'Server response OK:', repositories_response );
 
             repositories_response.then(
-              (response: RepositoryDetails) => {
-                // console.log( 'Server response:', response );
-                console.log(response.rateLimit);
-
+              (response: RepositoryDetails) =>
+              {
                 this.setState({
                   repositoryDetails: response,
                   isLoadingDetails: false,
@@ -186,9 +181,8 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
       }).catch(this.setError)
   }
 
-  loadUserRepositories() {
-    // console.log("Sending loadUserRepositories for", this.props.repository.nameWithOwner)
-
+  loadUserRepositories()
+  {
     fetch(
       this.props.getBackEndUrl() + "/list_repositories",
       {
@@ -196,7 +190,7 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
         body: JSON.stringify(
           {
             repositoryUser: this.props.repository.nameWithOwner.split("/")[0],
-            lastItemId: this.state.lastItemId,
+            endCursor: this.state.endCursor,
             itemsPerPage: 100,
           }
         ),
@@ -205,25 +199,21 @@ export class Content extends React.Component<RepositoryItemProps, RepositoryItem
           'Content-Type': 'application/json',
         },
       }).then(
-        response => {
-          // console.log('Server response', response);
-
+        response =>
+        {
           if (response.ok) {
             var repositories_response = response.json()
-            // console.log( 'Server response OK:', repositories_response );
 
             repositories_response.then(
-              (response: UserRepository) => {
-                // console.log('Server response:', response);
-                console.log(response.rateLimit);
-
+              (response: UserRepository) =>
+              {
                 let userRepositories = this.state.userRepositories
                 extendArray(userRepositories, response.repositories)
 
                 this.setState({
                   userRepositories: userRepositories,
-                  lastItemId: response.lastItemId,
-                  hasMorePages: response.hasMorePages,
+                  endCursor: response.endCursor,
+                  hasNextPage: response.hasNextPage,
                   isLoadingRepositories: false,
                 });
               }).catch(this.setError)
